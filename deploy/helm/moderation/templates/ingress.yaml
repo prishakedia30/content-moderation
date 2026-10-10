@@ -1,0 +1,16 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: moderation
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /review
+            pathType: Prefix
+            backend:
+              service: { name: review-ui, port: { number: {{ index .Values.apps "review-ui" "port" }} } }
+          - path: /
+            pathType: Prefix
+            backend:
+              service: { name: ingest, port: { number: {{ .Values.apps.ingest.port }} } }

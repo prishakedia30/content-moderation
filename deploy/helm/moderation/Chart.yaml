@@ -1,0 +1,4 @@
+apiVersion: v2
+name: moderation
+description: Real-time content moderation platform
+version: 0.1.0
