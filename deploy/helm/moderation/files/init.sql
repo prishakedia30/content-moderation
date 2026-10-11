@@ -1,4 +1,6 @@
--- Schema for the moderation platform. Runs once, when the Postgres volume is first created.
+-- Schema for the moderation platform. Every service runs this on startup, and
+-- Postgres runs it once when its volume is first created. All statements are
+-- idempotent (IF NOT EXISTS), so running it again is harmless.
 -- Columns in the first block of each table are the agreed interface (roadmap, Integration plan).
 -- Columns marked "extra" are additions for the review UI; they are nullable so writers can ignore them.
 
@@ -30,3 +32,19 @@ CREATE TABLE IF NOT EXISTS video_spans (
 );
 
 CREATE INDEX IF NOT EXISTS video_spans_video ON video_spans (video_id);
+
+-- One row per uploaded video: where it is in the pipeline, and where its files are.
+CREATE TABLE IF NOT EXISTS videos (
+    video_id      TEXT        PRIMARY KEY,
+    filename      TEXT,
+    status        TEXT        NOT NULL DEFAULT 'queued'
+                  CHECK (status IN ('queued', 'processing', 'done', 'failed')),
+    raw_key       TEXT        NOT NULL,
+    clean_key     TEXT,
+    n_words       INTEGER,
+    n_spans       INTEGER,
+    processing_s  REAL,
+    error         TEXT,
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);

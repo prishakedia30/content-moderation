@@ -65,11 +65,21 @@ spec:
   selector: { app: postgres }
   ports: [{ port: 5432 }]
 ---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-data
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests: { storage: 1Gi }
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: redis
 spec:
+  strategy: { type: Recreate }
   selector:
     matchLabels: { app: redis }
   template:
@@ -79,10 +89,20 @@ spec:
       containers:
         - name: redis
           image: redis:7-alpine
+          # Append-only file on a volume: queued posts survive a Redis restart.
+          args: ["--appendonly", "yes", "--appendfsync", "everysec"]
           ports: [{ containerPort: 6379 }]
+          readinessProbe:
+            exec: { command: ["redis-cli", "ping"] }
+            periodSeconds: 5
           resources:
             requests: { cpu: 50m, memory: 64Mi }
             limits: { cpu: 250m, memory: 256Mi }
+          volumeMounts:
+            - { name: data, mountPath: /data }
+      volumes:
+        - name: data
+          persistentVolumeClaim: { claimName: redis-data }
 ---
 apiVersion: v1
 kind: Service

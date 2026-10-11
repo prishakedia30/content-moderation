@@ -1,45 +1,61 @@
+# Images are built and pushed by GitHub Actions (.github/workflows/ci.yml).
+# Each app's image = <registry>/<app name>:<tag>. scripts/deploy.sh sets tag to the git commit.
+image:
+  registry: ghcr.io/prishakedia30/content-moderation
+  tag: latest
+  pullPolicy: IfNotPresent
+imagePullSecrets: []        # only needed if the GHCR packages are private
+
 # Shared settings every app receives as environment variables
 env:
   REDIS_URL: redis://redis:6379/0
   S3_BUCKET: sap-moderation-858082489486
   AWS_REGION: ap-southeast-2
+  STORAGE: s3
   MODEL_VERSION: v0
 
 postgres:
   password: change-me   # overridden at install time, never commit the real one
 
-# Placeholder images for now; swap in ghcr.io/<repo>/<app>:<tag> as teammates ship
+monitoring:
+  enabled: true           # ServiceMonitors + Grafana dashboard (needs kube-prometheus-stack)
+  namespace: monitoring
+
 apps:
   ingest:
-    image: traefik/whoami
-    port: 80
-    healthPath: /
-    readyPath: /
+    port: 8000
+    env:
+      CLASSIFY_URL: http://text-worker:8000/classify
+    hpa: { enabled: true, minReplicas: 1, maxReplicas: 3, cpu: 70 }
     resources:
-      requests: { cpu: 100m, memory: 64Mi }
-      limits: { cpu: 500m, memory: 256Mi }
+      requests: { cpu: 50m, memory: 128Mi }
+      limits: { cpu: "1", memory: 512Mi }
   text-worker:
-    image: traefik/whoami
-    port: 80
-    healthPath: /
-    readyPath: /
+    port: 8000
+    env:
+      ORT_THREADS: "1"      # one inference thread per pod; scale out with more pods
     hpa: { enabled: true, minReplicas: 1, maxReplicas: 4, cpu: 60 }
+    startupSeconds: 180     # first start downloads the model from S3
     resources:
-      requests: { cpu: 250m, memory: 128Mi }
-      limits: { cpu: "1", memory: 1Gi }
+      requests: { cpu: 200m, memory: 256Mi }
+      limits: { cpu: "1", memory: 768Mi }
   video-worker:
-    image: traefik/whoami
-    port: 80
-    healthPath: /
-    readyPath: /
+    port: 8000
+    env:
+      CLASSIFY_URL: http://text-worker:8000/classify
+      WHISPER_MODEL: base
+      SPAN_THRESHOLD: "0.75"
+    startupSeconds: 300     # loads Whisper before reporting ready
     resources:
-      requests: { cpu: 250m, memory: 128Mi }
-      limits: { cpu: "2", memory: 3Gi }
+      requests: { cpu: 100m, memory: 512Mi }
+      limits: { cpu: 1500m, memory: 3Gi }
   review-ui:
-    image: traefik/whoami
-    port: 80
-    healthPath: /
-    readyPath: /
+    port: 8501
+    healthPath: /review/_stcore/health
+    readyPath: /review/_stcore/health
+    metrics: false
+    env:
+      INGEST_URL: http://ingest:8000
     resources:
-      requests: { cpu: 100m, memory: 64Mi }
+      requests: { cpu: 50m, memory: 128Mi }
       limits: { cpu: 500m, memory: 512Mi }

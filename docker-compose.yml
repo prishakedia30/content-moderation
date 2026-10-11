@@ -1,0 +1,58 @@
+# Whole stack on a laptop:  docker compose up --build
+#   demo page   http://localhost:8000      review UI   http://localhost:8501/review
+# By default the text worker uses a keyword mock. To use the real model, put the ONNX files
+# (model.int8.onnx + tokenizer/) in ./model and run:  MODEL_MODE=onnx docker compose up --build
+x-common-env: &common-env
+  REDIS_URL: redis://redis:6379/0
+  DATABASE_URL: postgresql://moderation:moderation@postgres:5432/moderation
+  STORAGE: local
+  LOCAL_STORAGE_DIR: /data
+  PUBLIC_BASE_URL: http://localhost:8000
+
+services:
+  redis:
+    image: redis:7-alpine
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: moderation
+      POSTGRES_PASSWORD: moderation
+      POSTGRES_DB: moderation
+    volumes:
+      - ./services/common/schema.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "moderation"]
+      interval: 3s
+      retries: 20
+  text-worker:
+    build: { context: ., dockerfile: services/text-worker/Dockerfile }
+    environment:
+      <<: *common-env
+      MODEL_MODE: ${MODEL_MODE:-mock}
+    volumes: ["./model:/models/current:ro"]
+    depends_on: { postgres: { condition: service_healthy }, redis: { condition: service_started } }
+  ingest:
+    build: { context: ., dockerfile: services/ingest/Dockerfile }
+    environment:
+      <<: *common-env
+      CLASSIFY_URL: http://text-worker:8000/classify
+    ports: ["8000:8000"]
+    volumes: ["media:/data"]
+    depends_on: { postgres: { condition: service_healthy }, redis: { condition: service_started } }
+  video-worker:
+    build: { context: ., dockerfile: services/video-worker/Dockerfile }
+    environment:
+      <<: *common-env
+      CLASSIFY_URL: http://text-worker:8000/classify
+    volumes: ["media:/data"]
+    depends_on: { postgres: { condition: service_healthy }, redis: { condition: service_started } }
+  review-ui:
+    build: { context: ., dockerfile: services/review-ui/Dockerfile }
+    environment:
+      <<: *common-env
+      INGEST_URL: http://ingest:8000
+    ports: ["8501:8501"]
+    depends_on: { postgres: { condition: service_healthy } }
+
+volumes:
+  media:

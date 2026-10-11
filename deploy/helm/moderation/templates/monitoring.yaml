@@ -1,0 +1,31 @@
+{{- if and .Values.monitoring.enabled (.Capabilities.APIVersions.Has "monitoring.coreos.com/v1") }}
+{{- range $name, $app := .Values.apps }}
+{{- if ne (toString $app.metrics) "false" }}
+---
+# Tells Prometheus to scrape this app's /metrics every 15 s.
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ $name }}
+  labels: { app: {{ $name }}, release: monitoring }
+spec:
+  selector:
+    matchLabels: { app: {{ $name }} }
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s
+{{- end }}
+{{- end }}
+---
+# Grafana's sidecar loads any ConfigMap labelled grafana_dashboard=1 as a dashboard.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: moderation-dashboard
+  namespace: {{ .Values.monitoring.namespace }}
+  labels: { grafana_dashboard: "1" }
+data:
+  moderation.json: |-
+{{ .Files.Get "files/dashboard.json" | indent 4 }}
+{{- end }}

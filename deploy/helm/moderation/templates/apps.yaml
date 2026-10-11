@@ -15,11 +15,17 @@ spec:
     metadata:
       labels: { app: {{ $name }} }
     spec:
+      {{- with $.Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: {{ $name }}
-          image: {{ $app.image }}
+          image: {{ $app.image | default (printf "%s/%s:%s" $.Values.image.registry $name (toString $.Values.image.tag)) }}
+          imagePullPolicy: {{ $.Values.image.pullPolicy }}
           ports:
-            - containerPort: {{ $app.port }}
+            - name: http
+              containerPort: {{ $app.port }}
           env:
             - name: PG_PASSWORD
               valueFrom:
@@ -30,14 +36,21 @@ spec:
             - name: {{ $k }}
               value: {{ $v | quote }}
             {{- end }}
+            {{- range $k, $v := $app.env }}
+            - name: {{ $k }}
+              value: {{ $v | quote }}
+            {{- end }}
+          startupProbe:
+            httpGet: { path: {{ $app.readyPath | default "/ready" }}, port: http }
+            periodSeconds: 5
+            failureThreshold: {{ div ($app.startupSeconds | default 60) 5 }}
           readinessProbe:
-            httpGet: { path: {{ $app.readyPath | default "/ready" }}, port: {{ $app.port }} }
-            initialDelaySeconds: 5
+            httpGet: { path: {{ $app.readyPath | default "/ready" }}, port: http }
             periodSeconds: 10
           livenessProbe:
-            httpGet: { path: {{ $app.healthPath | default "/health" }}, port: {{ $app.port }} }
-            initialDelaySeconds: 15
+            httpGet: { path: {{ $app.healthPath | default "/health" }}, port: http }
             periodSeconds: 20
+            failureThreshold: 3
           resources:
             {{- toYaml $app.resources | nindent 12 }}
 ---
@@ -45,9 +58,11 @@ apiVersion: v1
 kind: Service
 metadata:
   name: {{ $name }}
+  labels: { app: {{ $name }} }
 spec:
   selector: { app: {{ $name }} }
   ports:
-    - port: {{ $app.port }}
-      targetPort: {{ $app.port }}
+    - name: http
+      port: {{ $app.port }}
+      targetPort: http
 {{- end }}

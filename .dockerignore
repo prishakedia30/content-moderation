@@ -1,0 +1,11 @@
+.git
+**/__pycache__
+**/.pytest_cache
+**/tests
+infra
+ml
+deploy
+model
+*.mp4
+*.wav
+.venv

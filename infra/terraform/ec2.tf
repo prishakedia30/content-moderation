@@ -2,6 +2,12 @@ variable "my_ip" {
   type = string
 }
 
+variable "extra_ssh_cidrs" {
+  description = "Extra networks allowed to SSH in (e.g. [\"0.0.0.0/0\"] for GitHub Actions auto-deploy; key-only login)"
+  type        = list(string)
+  default     = []
+}
+
 variable "instance_type" {
   default = "t3.large" # 2 vCPU, 8 GB RAM
 }
@@ -37,7 +43,7 @@ resource "aws_security_group" "k3s" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = [var.my_ip]
+    cidr_blocks = concat([var.my_ip], var.extra_ssh_cidrs)
   }
   ingress {
     description = "HTTP"
@@ -98,6 +104,13 @@ resource "aws_instance" "k3s" {
   key_name               = aws_key_pair.main.key_name
   vpc_security_group_ids = [aws_security_group.k3s.id]
   iam_instance_profile   = aws_iam_instance_profile.node.name
+
+  # Pods are one network hop further from the metadata service than the host, so allow
+  # 2 hops; otherwise pods can't get the instance role's S3 credentials. IMDSv2 only.
+  metadata_options {
+    http_tokens                 = "required"
+    http_put_response_hop_limit = 2
+  }
 
   root_block_device {
     volume_size = 30

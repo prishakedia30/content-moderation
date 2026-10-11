@@ -14,3 +14,7 @@ __pycache__/
 *.mp4
 *.wav
 services/video-worker/spans.json
+
+# local runs
+.pytest_cache/
+model/
