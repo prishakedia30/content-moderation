@@ -7,3 +7,10 @@
 __pycache__/
 artifacts/
 *.onnx
+
+# video worker test output
+__pycache__/
+*.pyc
+*.mp4
+*.wav
+services/video-worker/spans.json
