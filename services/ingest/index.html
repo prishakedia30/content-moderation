@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Content Moderation Demo</title>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --ink:#1b1f24; --muted:#5b6470; --line:#dfe3e8;
+          --allow:#1a7f37; --review:#9a6700; --block:#cf222e; --accent:#0969da; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#0d1117; --card:#161b22; --ink:#e6edf3; --muted:#9198a1; --line:#30363d;
+            --allow:#3fb950; --review:#d29922; --block:#f85149; --accent:#4493f8; } }
+  * { box-sizing: border-box; }
+  body { margin:0; font:15px/1.5 system-ui, -apple-system, Segoe UI, sans-serif; background:var(--bg); color:var(--ink); }
+  main { max-width: 860px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 22px; margin: 0 0 4px; } .sub { color: var(--muted); margin: 0 0 24px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:20px; margin-bottom:20px; }
+  h2 { font-size: 16px; margin: 0 0 12px; }
+  textarea { width:100%; min-height:84px; padding:10px; border:1px solid var(--line); border-radius:8px;
+             background:transparent; color:inherit; font:inherit; resize:vertical; }
+  button { margin-top:10px; padding:8px 14px; border:0; border-radius:8px; background:var(--accent); color:#fff; font:inherit; cursor:pointer; }
+  button.secondary { background:transparent; color:var(--accent); border:1px solid var(--line); }
+  .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .pill { display:inline-block; padding:2px 10px; border-radius:999px; font-weight:600; font-size:13px; color:#fff; }
+  .ALLOW { background:var(--allow); } .REVIEW { background:var(--review); } .BLOCK { background:var(--block); }
+  .muted { color: var(--muted); font-size: 13px; }
+  table { width:100%; border-collapse:collapse; font-size:14px; } td, th { text-align:left; padding:6px 4px; border-bottom:1px solid var(--line); }
+  video { width:100%; border-radius:8px; background:#000; }
+  .grid { display:grid; grid-template-columns: 1fr 1fr; gap:12px; } @media (max-width:640px) { .grid { grid-template-columns:1fr; } }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Real-time content moderation</h1>
+  <p class="sub">DistilBERT (INT8 ONNX) scores each post; a two-threshold policy decides ALLOW, REVIEW or BLOCK. <a href="/review/">Review queue</a> · <a href="/grafana/">Dashboards</a> · <a href="/docs">API</a></p>
+
+  <section class="card">
+    <h2>Moderate a post</h2>
+    <textarea id="text" placeholder="Type a comment…">You are an idiot and nobody wants you here.</textarea>
+    <div class="row">
+      <button onclick="instant()">Score instantly</button>
+      <button class="secondary" onclick="queue()">Submit through the queue</button>
+    </div>
+    <p id="result" class="muted"></p>
+  </section>
+
+  <section class="card">
+    <h2>Censor a video</h2>
+    <div class="row"><input type="file" id="video" accept="video/*"><button onclick="upload()">Upload</button></div>
+    <p id="vstatus" class="muted"></p>
+    <div id="vout"></div>
+  </section>
+
+  <section class="card">
+    <h2>Recent decisions</h2>
+    <table><thead><tr><th>Text</th><th>Score</th><th>Decision</th></tr></thead><tbody id="recent"></tbody></table>
+  </section>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const pill = d => `<span class="pill ${d}">${d}</span>`;
+
+async function instant() {
+  const t0 = performance.now();
+  const r = await fetch('classify', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({text: $('text').value})});
+  const j = await r.json();
+  if (!r.ok) { $('result').textContent = j.detail || 'error'; return; }
+  $('result').innerHTML = `${pill(j.decision)} score ${j.score.toFixed(3)} · model ${esc(j.model_version)} · inference ${j.latency_ms} ms · round trip ${Math.round(performance.now()-t0)} ms`;
+}
+
+async function queue() {
+  const r = await fetch('posts', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({text: $('text').value})});
+  const {post_id} = await r.json();
+  $('result').textContent = `Queued ${post_id}; waiting for the worker…`;
+  for (let i = 0; i < 30; i++) {
+    await new Promise(res => setTimeout(res, 500));
+    const j = await (await fetch('posts/' + post_id)).json();
+    if (j.decision) { $('result').innerHTML = `${pill(j.decision)} score ${j.score.toFixed(3)} · written to Postgres by the queue worker`; loadRecent(); return; }
+  }
+  $('result').textContent = 'Still pending; is the text worker running?';
+}
+
+async function upload() {
+  const f = $('video').files[0]; if (!f) return;
+  const fd = new FormData(); fd.append('file', f);
+  $('vstatus').textContent = 'Uploading…'; $('vout').innerHTML = '';
+  const r = await fetch('videos', {method:'POST', body: fd}); const j = await r.json();
+  if (!r.ok) { $('vstatus').textContent = j.detail || 'upload failed'; return; }
+  for (let i = 0; i < 240; i++) {
+    const v = await (await fetch('videos/' + j.video_id)).json();
+    $('vstatus').textContent = `Status: ${v.status}` + (v.processing_s ? ` · processed in ${v.processing_s.toFixed(1)} s` : '');
+    if (v.status === 'done' || v.status === 'failed') {
+      if (v.status === 'failed') { $('vstatus').textContent += ` · ${v.error || ''}`; return; }
+      const spans = v.spans.map(s => `<tr><td>${s.start_s.toFixed(2)}–${s.end_s.toFixed(2)} s</td><td>${esc(s.text)}</td><td>${s.score.toFixed(2)}</td></tr>`).join('') || '<tr><td colspan="3">No toxic speech found</td></tr>';
+      $('vout').innerHTML = `<div class="grid"><div><p class="muted">Original</p><video controls src="${v.original_url}"></video></div>
+        <div><p class="muted">Censored</p><video controls src="${v.clean_url}"></video></div></div>
+        <table><thead><tr><th>Muted span</th><th>Words</th><th>Score</th></tr></thead><tbody>${spans}</tbody></table>`;
+      return;
+    }
+    await new Promise(res => setTimeout(res, 2000));
+  }
+}
+
+async function loadRecent() {
+  try {
+    const rows = await (await fetch('posts?limit=10')).json();
+    $('recent').innerHTML = rows.map(p => `<tr><td>${esc(p.text || '')}</td><td>${p.score.toFixed(3)}</td><td>${pill(p.decision)}</td></tr>`).join('');
+  } catch (e) {}
+}
+loadRecent();
+</script>
+</body>
+</html>

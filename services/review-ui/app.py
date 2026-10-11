@@ -1,0 +1,104 @@
+"""Human review UI: moderators clear the REVIEW queue, see the decision mix, and check censored videos."""
+import json
+import os
+import urllib.request
+
+import pandas as pd
+import psycopg
+import streamlit as st
+
+DATABASE_URL = os.environ.get("DATABASE_URL", "postgresql://moderation:moderation@localhost:5432/moderation")
+INGEST_URL = os.environ.get("INGEST_URL", "http://ingest:8000").rstrip("/")
+
+st.set_page_config(page_title="Moderation review", layout="wide")
+
+
+@st.cache_resource
+def connect():
+    return psycopg.connect(DATABASE_URL, autocommit=True)
+
+
+def query(sql, params=None):
+    conn = connect()
+    if conn.closed:
+        st.cache_resource.clear()
+        conn = connect()
+    with conn.cursor() as cur:
+        cur.execute(sql, params)
+        if cur.description is None:
+            return None
+        return pd.DataFrame(cur.fetchall(), columns=[c.name for c in cur.description])
+
+
+def set_verdict(post_id, verdict):
+    query("UPDATE decisions SET review_status=%s, reviewed_at=now() WHERE post_id=%s", (verdict, post_id))
+
+
+st.title("Moderation review")
+queue_tab, overview_tab, video_tab = st.tabs(["Review queue", "Overview", "Videos"])
+
+with queue_tab:
+    pending = query("SELECT post_id, text, score, ts FROM decisions "
+                    "WHERE decision='REVIEW' AND review_status IS NULL ORDER BY ts LIMIT 25")
+    st.caption(f"{len(pending)} post(s) waiting, oldest first. "
+               "These scored between the two thresholds, so a person decides.")
+    if pending.empty:
+        st.success("Queue is empty.")
+    for row in pending.itertuples():
+        with st.container(border=True):
+            st.write(row.text or "(no text)")
+            c1, c2, c3 = st.columns([1, 1, 6])
+            c3.caption(f"score {row.score:.3f} · {row.ts:%Y-%m-%d %H:%M:%S}")
+            if c1.button("Allow", key=f"a{row.post_id}", type="primary"):
+                set_verdict(row.post_id, "ALLOW")
+                st.rerun()
+            if c2.button("Block", key=f"b{row.post_id}"):
+                set_verdict(row.post_id, "BLOCK")
+                st.rerun()
+
+with overview_tab:
+    counts = query("SELECT decision, count(*) AS posts FROM decisions "
+                   "WHERE ts > now() - interval '24 hours' GROUP BY decision")
+    total = int(counts["posts"].sum()) if not counts.empty else 0
+    by = dict(zip(counts["decision"], counts["posts"])) if total else {}
+    cols = st.columns(4)
+    cols[0].metric("Posts (24 h)", total)
+    for col, d in zip(cols[1:], ["ALLOW", "REVIEW", "BLOCK"]):
+        n = int(by.get(d, 0))
+        col.metric(d, n, f"{n / total:.0%} of posts" if total else None, delta_color="off")
+    reviewed = query("SELECT review_status, count(*) AS posts FROM decisions "
+                     "WHERE review_status IS NOT NULL GROUP BY review_status")
+    if not reviewed.empty:
+        st.caption("Human verdicts on REVIEW posts: " +
+                   ", ".join(f"{r.review_status} {r.posts}" for r in reviewed.itertuples()))
+    st.subheader("Latest decisions")
+    st.dataframe(query("SELECT ts, decision, round(score::numeric, 3) AS score, model_version, "
+                       "round(latency_ms::numeric, 2) AS latency_ms, review_status, text "
+                       "FROM decisions ORDER BY ts DESC LIMIT 100"),
+                 use_container_width=True, hide_index=True)
+
+with video_tab:
+    videos = query("SELECT video_id, filename, status, n_spans, processing_s, created_at "
+                   "FROM videos ORDER BY created_at DESC LIMIT 50")
+    if videos.empty:
+        st.info("No videos yet. Upload one on the main page.")
+    else:
+        st.dataframe(videos, use_container_width=True, hide_index=True)
+        choice = st.selectbox("Open a video", videos["video_id"],
+                              format_func=lambda v: f"{videos.set_index('video_id').loc[v, 'filename']} ({v[:8]})")
+        try:
+            with urllib.request.urlopen(f"{INGEST_URL}/videos/{choice}", timeout=10) as resp:
+                v = json.load(resp)
+        except Exception as e:
+            st.error(f"Could not load the video details from the ingest API: {e}")
+        else:
+            left, right = st.columns(2)
+            left.caption("Original")
+            left.video(v["original_url"])
+            right.caption("Censored")
+            if v.get("clean_url"):
+                right.video(v["clean_url"])
+            else:
+                right.info(f"Status: {v['status']}")
+            if v["spans"]:
+                st.dataframe(pd.DataFrame(v["spans"]), use_container_width=True, hide_index=True)

@@ -1,0 +1,56 @@
+import os
+
+import pytest
+from fastapi.testclient import TestClient
+
+from decision import decide, load_thresholds
+from fake_model import build
+
+
+def test_decide_bands():
+    assert decide(0.10, 0.3, 0.75) == "ALLOW"
+    assert decide(0.30, 0.3, 0.75) == "REVIEW"
+    assert decide(0.74, 0.3, 0.75) == "REVIEW"
+    assert decide(0.75, 0.3, 0.75) == "BLOCK"
+
+
+def test_thresholds_file_then_env(tmp_path, monkeypatch):
+    (tmp_path / "thresholds.yaml").write_text("t_low: 0.2\nt_high: 0.9\ntemperature: 1.5\n")
+    cfg = load_thresholds(tmp_path)
+    assert cfg == {"t_low": 0.2, "t_high": 0.9, "temperature": 1.5}
+    monkeypatch.setenv("T_HIGH", "0.8")
+    assert load_thresholds(tmp_path)["t_high"] == 0.8
+
+
+def test_bad_thresholds_rejected(tmp_path):
+    (tmp_path / "thresholds.yaml").write_text("t_low: 0.9\nt_high: 0.2\n")
+    with pytest.raises(ValueError):
+        load_thresholds(tmp_path)
+
+
+def test_onnx_classifier_scores(tmp_path):
+    from classifier import OnnxClassifier
+    clf = OnnxClassifier(build(tmp_path))
+    assert clf.score("you are an idiot") > 0.9
+    assert clf.score("have a nice day") < 0.1
+    assert 0.0 <= clf.score("") <= 1.0          # empty text still works
+    assert clf.score("word " * 500) <= 1.0      # long text is truncated, not an error
+
+
+@pytest.fixture(scope="module")
+def client(tmp_path_factory):
+    os.environ["MODEL_DIR"] = str(build(tmp_path_factory.mktemp("model")))
+    os.environ["CONSUMER_ENABLED"] = "0"
+    import app as app_module   # reads MODEL_DIR at import time
+    with TestClient(app_module.app) as c:
+        yield c
+
+
+def test_api(client):
+    assert client.get("/health").json() == {"status": "ok"}
+    assert client.get("/ready").status_code == 200
+    out = client.post("/classify", json={"text": "you stupid moron"}).json()
+    assert out["decision"] == "BLOCK" and out["model_version"] == os.environ.get("MODEL_VERSION", "v0")
+    batch = client.post("/classify/batch", json={"texts": ["hello", "idiot idiot"]}).json()
+    assert [b["decision"] for b in batch] == ["ALLOW", "BLOCK"]
+    assert "moderation_decisions_total" in client.get("/metrics").text
