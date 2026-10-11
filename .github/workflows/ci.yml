@@ -99,5 +99,5 @@ jobs:
       - name: Helm upgrade (rolls back automatically if pods don't become ready)
         run: |
           helm upgrade --install moderation deploy/helm/moderation --atomic --timeout 8m \
-            --set image.tag=${{ github.sha }} --set postgres.password='${{ secrets.PG_PASSWORD }}'
+            --set-string image.tag=${{ github.sha }} --set-string postgres.password='${{ secrets.PG_PASSWORD }}'
           kubectl get pods

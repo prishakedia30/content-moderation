@@ -4,7 +4,7 @@ set -euo pipefail
 IP="${IP:-$(cd "$(dirname "$0")/../infra/terraform" && terraform output -raw public_ip)}"
 send() { for i in $(seq 1 "$1"); do curl -s -o /dev/null "http://$IP/posts" -H 'content-type: application/json' -d "{\"text\":\"chaos test $i\"}"; done; }
 echo "1) Killing a text-worker pod while sending 50 posts"
-kubectl delete pod -l app=text-worker --wait=false | head -1
+kubectl delete pod -l app=text-worker --wait=false
 send 50
 echo "2) Killing Redis (the queue). Its append-only file is on a volume, so queued posts survive."
 kubectl delete pod -l app=redis

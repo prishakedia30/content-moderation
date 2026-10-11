@@ -9,6 +9,6 @@ TIMEOUT="${TIMEOUT:-8m}"
 echo "Deploying image tag $TAG"
 helm upgrade --install moderation deploy/helm/moderation \
   --atomic --timeout "$TIMEOUT" \
-  --set image.tag="$TAG" \
-  --set postgres.password="$(cat ~/.moderation-pg-pass)"
+  --set-string image.tag="$TAG" \
+  --set-string postgres.password="$(cat ~/.moderation-pg-pass)"
 kubectl get pods
