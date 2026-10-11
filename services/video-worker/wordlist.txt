@@ -1,0 +1,15 @@
+# One word per line, lowercase. Single words on this list are always flagged,
+# because a model scoring a short window often misses a lone swear word.
+fuck
+fucking
+shit
+bitch
+asshole
+bastard
+dick
+cunt
+slut
+whore
+retard
+nigger
+faggot
