@@ -1,0 +1,92 @@
+[
+ {
+  "start": 0.0,
+  "end": 0.4,
+  "text": "you",
+  "toxic": false
+ },
+ {
+  "start": 0.5,
+  "end": 0.9,
+  "text": "are",
+  "toxic": false
+ },
+ {
+  "start": 1.0,
+  "end": 1.4,
+  "text": "such",
+  "toxic": false
+ },
+ {
+  "start": 1.5,
+  "end": 1.9,
+  "text": "an",
+  "toxic": false
+ },
+ {
+  "start": 2.0,
+  "end": 2.4,
+  "text": "idiot",
+  "toxic": true
+ },
+ {
+  "start": 2.5,
+  "end": 2.9,
+  "text": "sometimes",
+  "toxic": false
+ },
+ {
+  "start": 3.0,
+  "end": 3.4,
+  "text": "truly",
+  "toxic": false
+ },
+ {
+  "start": 3.5,
+  "end": 3.9,
+  "text": "kind.",
+  "toxic": false
+ },
+ {
+  "start": 4.0,
+  "end": 4.4,
+  "text": "what",
+  "toxic": false
+ },
+ {
+  "start": 4.5,
+  "end": 4.9,
+  "text": "the",
+  "toxic": false
+ },
+ {
+  "start": 5.0,
+  "end": 5.4,
+  "text": "shit",
+  "toxic": true
+ },
+ {
+  "start": 5.5,
+  "end": 5.9,
+  "text": "is",
+  "toxic": false
+ },
+ {
+  "start": 6.0,
+  "end": 6.4,
+  "text": "happening",
+  "toxic": false
+ },
+ {
+  "start": 6.5,
+  "end": 6.9,
+  "text": "here",
+  "toxic": false
+ },
+ {
+  "start": 7.0,
+  "end": 7.4,
+  "text": "today",
+  "toxic": false
+ }
+]

@@ -1,4 +1,4 @@
-import os, time, json
+import inspect, os, shutil, time, json
 import numpy as np
 import torch
 import onnxruntime as ort
@@ -6,13 +6,15 @@ from onnxruntime.quantization import quantize_dynamic, QuantType
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
 MODEL = os.environ.get("MODEL", "martin-ha/toxic-comment-model")
-OUT, THREADS, WARMUP, RUNS = "artifacts", 2, 20, 300
+OUT, THREADS, WARMUP, RUNS = os.environ.get("OUT", "artifacts"), 2, 20, 300
 os.makedirs(OUT, exist_ok=True)
 torch.set_num_threads(THREADS)
 
 tok = AutoTokenizer.from_pretrained(MODEL)
 model = AutoModelForSequenceClassification.from_pretrained(MODEL).eval()
 tok.save_pretrained(f"{OUT}/tokenizer")
+if os.path.isfile(os.path.join(MODEL, "thresholds.yaml")):   # fine-tuned model: keep its calibration
+    shutil.copy(os.path.join(MODEL, "thresholds.yaml"), f"{OUT}/thresholds.yaml")
 
 class Wrap(torch.nn.Module):
     def __init__(self, m):
@@ -28,6 +30,8 @@ torch.onnx.export(
     input_names=["input_ids", "attention_mask"], output_names=["logits"],
     dynamic_axes={"input_ids": {0: "batch", 1: "seq"}, "attention_mask": {0: "batch", 1: "seq"}, "logits": {0: "batch"}},
     opset_version=17,
+    # newer PyTorch defaults to the dynamo exporter; the classic one is what we validated
+    **({"dynamo": False} if "dynamo" in inspect.signature(torch.onnx.export).parameters else {}),
 )
 model.eval()
 quantize_dynamic(fp32_path, int8_path, weight_type=QuantType.QInt8)
