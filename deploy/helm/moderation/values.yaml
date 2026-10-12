@@ -12,7 +12,7 @@ env:
   S3_BUCKET: sap-moderation-858082489486
   AWS_REGION: ap-southeast-2
   STORAGE: s3
-  MODEL_VERSION: v0
+  MODEL_VERSION: v1
 
 postgres:
   password: change-me   # overridden at install time, never commit the real one
