@@ -38,3 +38,11 @@ def test_normal_text_untouched():
 def test_heuristic_mode():
     assert h("1d10t") == "idiot"
     assert h("2024") == "2024"
+
+
+def test_ambiguous_leet_and_merged_spacing():
+    v = VOCAB | {"a", "total", "and", "up", "fuck", "shut"}
+    m = Normalizer(v)
+    assert m("a total 10$er") == "a total loser"            # 1 read as l, not i
+    assert m("you are a s t u p i d i d i o t") == "you are a stupid idiot"
+    assert m("a total l.o.s.e.r, shut up") == "a total loser, shut up"

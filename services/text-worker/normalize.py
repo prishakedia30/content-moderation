@@ -27,9 +27,10 @@ HOMOGLYPHS = str.maketrans({
 LEET = {"0": "o", "1": "i", "3": "e", "4": "a", "5": "s", "7": "t", "8": "b", "9": "g",
         "@": "a", "$": "s", "!": "i", "|": "l", "+": "t", "€": "e"}
 LEET_RE = re.compile("[" + re.escape("".join(LEET)) + "]")
+AMBIGUOUS = {"1": "il", "|": "li", "!": "il", "0": "o", "4": "a", "3": "e"}   # 1 is i (1d10t) or l (10ser)
 
 # 3+ single characters separated by one repeated separator: "i d i o t", "s.t.u.p.i.d"
-SPACED_RE = re.compile(r"(?<!\S)((?:[^\W_]|[@$!0-9])([ .\-_*])(?:(?:[^\W_]|[@$!0-9])\2){1,}(?:[^\W_]|[@$!0-9]))(?!\S)")
+SPACED_RE = re.compile(r"(?<![^\W_])((?:[^\W_]|[@$!0-9])([ .\-_*])(?:(?:[^\W_]|[@$!0-9])\2){1,}(?:[^\W_]|[@$!0-9]))(?![^\W_])")
 RUN_RE = re.compile(r"([^\W\d_])\1{2,}")   # letters only: "555" stays
 EDGE_PUNCT = "\"'()[]{}<>,.;:?!*-_~`"
 
@@ -42,6 +43,23 @@ def _strip_accents(text):
 def _join_spaced(match):
     sep = match.group(2)
     return match.group(1).replace(sep, "")
+
+
+def segment(text, vocab, max_word=20):
+    """Split a run of letters into the fewest vocabulary words: "astupididiot" -> "a stupid idiot".
+    Returns None when it cannot be split completely."""
+    low = text.lower()
+    n = len(low)
+    best = [None] * (n + 1)
+    best[0] = []
+    for i in range(1, n + 1):
+        for j in range(max(0, i - max_word), i):
+            w = low[j:i]
+            if best[j] is not None and (w in vocab and (len(w) > 1 or w in ("a", "i"))):
+                cand = best[j] + [text[j:i]]
+                if best[i] is None or len(cand) < len(best[i]):
+                    best[i] = cand
+    return " ".join(best[n]) if best[n] else None
 
 
 class Normalizer:
@@ -80,6 +98,20 @@ class Normalizer:
                 return cand
         return RUN_RE.sub(r"\1\1", word)
 
+    def _join(self, match):
+        joined = _join_spaced(match)
+        if self.vocab is None or self.known(joined) or not joined.isalpha():
+            return joined
+        return segment(joined, self.vocab) or joined
+
+    def _leet_candidates(self, word):
+        """Every reading of the leet characters (1 -> i or l), at most 16."""
+        options = [AMBIGUOUS.get(c, LEET.get(c, c)) if c in LEET else c for c in word]
+        n_amb = sum(len(o) > 1 for o in options)
+        if n_amb > 4:
+            options = [o[0] for o in options]
+        return ["".join(p) for p in itertools.product(*options)]
+
     def _fix_word(self, token):
         # keep surrounding punctuation ("idiot!" stays "idiot!"), fix the core
         core = token.strip(EDGE_PUNCT)
@@ -94,16 +126,18 @@ class Normalizer:
                 word = fixed
         has_alpha = any(c.isalpha() for c in word)
         if has_alpha and LEET_RE.search(word):
-            cand = "".join(LEET.get(c, c) for c in word)
-            cand = self._fix_runs(cand) if RUN_RE.search(cand) else cand
-            if self._accept(word, cand):
-                word = cand
+            cands = [self._fix_runs(c) if RUN_RE.search(c) else c for c in self._leet_candidates(word)]
+            known = [c for c in cands if self.known(c)]
+            for cand in (known or cands[:1]):
+                if self._accept(word, cand):
+                    word = cand
+                    break
         return pre + word + post
 
     def __call__(self, text):
         t = unicodedata.normalize("NFKC", text).translate(INVISIBLE).translate(HOMOGLYPHS)
         t = _strip_accents(t)
-        t = SPACED_RE.sub(_join_spaced, t)
+        t = SPACED_RE.sub(self._join, t)
         return " ".join(self._fix_word(tok) for tok in t.split())
 
 
