@@ -17,7 +17,9 @@ def test_decide_bands():
 def test_thresholds_file_then_env(tmp_path, monkeypatch):
     (tmp_path / "thresholds.yaml").write_text("t_low: 0.2\nt_high: 0.9\ntemperature: 1.5\n")
     cfg = load_thresholds(tmp_path)
-    assert cfg == {"t_low": 0.2, "t_high": 0.9, "temperature": 1.5}
+    assert {k: cfg[k] for k in ("t_low", "t_high", "temperature")} == \
+        {"t_low": 0.2, "t_high": 0.9, "temperature": 1.5}
+    assert cfg["categories"] == {}
     monkeypatch.setenv("T_HIGH", "0.8")
     assert load_thresholds(tmp_path)["t_high"] == 0.8
 
@@ -54,3 +56,31 @@ def test_api(client):
     batch = client.post("/classify/batch", json={"texts": ["hello", "idiot idiot"]}).json()
     assert [b["decision"] for b in batch] == ["ALLOW", "BLOCK"]
     assert "moderation_decisions_total" in client.get("/metrics").text
+
+
+def test_api_normalize_and_explain(client):
+    plain = client.post("/classify", json={"text": "you are an 1d10t"}).json()
+    assert plain["decision"] == "BLOCK" and plain["normalized"] == "you are an idiot"
+    off = client.post("/classify", json={"text": "you are an 1d10t", "normalize": False}).json()
+    assert off["decision"] == "ALLOW" and off["normalized"] is None
+    ex = client.post("/explain", json={"text": "have a nice day idiot"}).json()
+    top = max(ex["words"], key=lambda w: w["weight"])
+    assert top["word"] == "idiot" and top["weight"] > 0.5
+    assert [w["word"] for w in ex["words"]] == ["have", "a", "nice", "day", "idiot"]
+
+
+def test_multilabel_model(tmp_path):
+    from classifier import OnnxClassifier
+    from decision import flags, load_thresholds
+    d = build(tmp_path, n_labels=6, thresholds=(
+        "t_low: 0.2\nt_high: 0.9\ntemperature: 1.0\n"
+        "labels: [toxic, severe_toxic, obscene, threat, insult, identity_hate]\n"
+        "temperatures: [1, 1, 1, 1, 1, 1]\ncategories: {threat: 0.5, insult: 0.5}\n"))
+    cfg = load_thresholds(d)
+    clf = OnnxClassifier(d, temperatures=cfg["temperatures"], labels=cfg["labels"])
+    assert clf.multilabel
+    main, cats = clf.score_full("i will kill you")
+    assert main > 0.9 and cats["threat"] > 0.9 and cats["insult"] < 0.1
+    assert flags(cats, cfg["categories"]) == ["threat"]
+    main, cats = clf.score_full("have a nice day")
+    assert main < 0.1 and flags(cats, cfg["categories"]) == []

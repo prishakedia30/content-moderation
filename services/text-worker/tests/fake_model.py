@@ -10,13 +10,15 @@ from onnx import TensorProto, helper
 from tokenizers import Tokenizer, models, normalizers, pre_tokenizers, processors
 
 BAD = ["idiot", "stupid", "moron", "trash"]
+THREAT = ["kill"]
 GOOD = ["thanks", "great", "hello", "day", "nice", "have", "a", "you", "are", "the", "is"]
 
 
-def build(model_dir):
+def build(model_dir, n_labels=2, thresholds=None):
+    """n_labels=2: binary model (softmax). n_labels=6: multi-label model (sigmoid per category)."""
     model_dir = Path(model_dir)
     (model_dir / "tokenizer").mkdir(parents=True, exist_ok=True)
-    vocab = ["[PAD]", "[UNK]", "[CLS]", "[SEP]"] + GOOD + BAD
+    vocab = ["[PAD]", "[UNK]", "[CLS]", "[SEP]"] + GOOD + BAD + THREAT
     tok = Tokenizer(models.WordPiece({w: i for i, w in enumerate(vocab)}, unk_token="[UNK]"))
     tok.normalizer = normalizers.BertNormalizer(lowercase=True)
     tok.pre_tokenizer = pre_tokenizers.BertPreTokenizer()
@@ -25,10 +27,17 @@ def build(model_dir):
     tok.save(str(model_dir / "tokenizer" / "tokenizer.json"))
 
     # logits = sum over tokens of table[token] ; table row = [non-toxic, toxic]
-    table = np.zeros((len(vocab), 2), dtype=np.float32)
-    table[:, 0] = 1.0
-    for w in BAD:
-        table[vocab.index(w)] = [0.0, 8.0]
+    if n_labels == 2:
+        table = np.zeros((len(vocab), 2), dtype=np.float32)
+        table[:, 0] = 1.0
+        for w in BAD + THREAT:
+            table[vocab.index(w)] = [0.0, 8.0]
+    else:   # toxic, severe_toxic, obscene, threat, insult, identity_hate
+        table = np.full((len(vocab), 6), -1.0, dtype=np.float32)
+        for w in BAD:
+            table[vocab.index(w), [0, 4]] = 8.0
+        for w in THREAT:
+            table[vocab.index(w), [0, 3]] = 8.0
     graph = helper.make_graph(
         [
             helper.make_node("Gather", ["table", "input_ids"], ["emb"], axis=0),
@@ -40,7 +49,7 @@ def build(model_dir):
         "fake",
         [helper.make_tensor_value_info("input_ids", TensorProto.INT64, ["batch", "seq"]),
          helper.make_tensor_value_info("attention_mask", TensorProto.INT64, ["batch", "seq"])],
-        [helper.make_tensor_value_info("logits", TensorProto.FLOAT, ["batch", 2])],
+        [helper.make_tensor_value_info("logits", TensorProto.FLOAT, ["batch", n_labels])],
         initializer=[helper.make_tensor("table", TensorProto.FLOAT, table.shape, table.flatten()),
                      helper.make_tensor("ax", TensorProto.INT64, [1], [2]),
                      helper.make_tensor("ax1", TensorProto.INT64, [1], [1])],
@@ -48,6 +57,8 @@ def build(model_dir):
     model = helper.make_model(graph, opset_imports=[helper.make_opsetid("", 17)])
     model.ir_version = 8
     onnx.save(model, str(model_dir / "model.int8.onnx"))
+    if thresholds:
+        (model_dir / "thresholds.yaml").write_text(thresholds)
     return model_dir
 
 

@@ -3,100 +3,344 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Content Moderation Demo</title>
+<title>Moderation console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:ital@0;1&display=swap" rel="stylesheet">
 <style>
-  :root { --bg:#f6f7f9; --card:#fff; --ink:#1b1f24; --muted:#5b6470; --line:#dfe3e8;
-          --allow:#1a7f37; --review:#9a6700; --block:#cf222e; --accent:#0969da; }
+  :root {
+    --bg:#E9EDF1; --panel:#FFFFFF; --ink:#16202B; --muted:#5A6878; --line:#D3DAE2; --soft:#F3F6F8;
+    --allow:#2F7D5B; --review:#B7791F; --block:#B4263A; --accent:#3346A8;
+    --allow-bg:#DCEFE6; --review-bg:#F6E9D2; --block-bg:#F6DADF;
+    --heat:180,38,58; --on-accent:#FFFFFF;
+  }
   @media (prefers-color-scheme: dark) {
-    :root { --bg:#0d1117; --card:#161b22; --ink:#e6edf3; --muted:#9198a1; --line:#30363d;
-            --allow:#3fb950; --review:#d29922; --block:#f85149; --accent:#4493f8; } }
+    :root {
+      --bg:#121820; --panel:#1A222C; --ink:#E4EAF0; --muted:#94A2B2; --line:#2C3743; --soft:#212B36;
+      --allow:#5BBF8E; --review:#E2A64A; --block:#F06B7E; --accent:#8C9BF2;
+      --allow-bg:#1D3A2E; --review-bg:#3D3020; --block-bg:#44222A;
+      --heat:240,107,126; --on-accent:#121820;
+    }
+  }
   * { box-sizing: border-box; }
-  body { margin:0; font:15px/1.5 system-ui, -apple-system, Segoe UI, sans-serif; background:var(--bg); color:var(--ink); }
-  main { max-width: 860px; margin: 0 auto; padding: 32px 16px 64px; }
-  h1 { font-size: 22px; margin: 0 0 4px; } .sub { color: var(--muted); margin: 0 0 24px; }
-  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:20px; margin-bottom:20px; }
-  h2 { font-size: 16px; margin: 0 0 12px; }
-  textarea { width:100%; min-height:84px; padding:10px; border:1px solid var(--line); border-radius:8px;
-             background:transparent; color:inherit; font:inherit; resize:vertical; }
-  button { margin-top:10px; padding:8px 14px; border:0; border-radius:8px; background:var(--accent); color:#fff; font:inherit; cursor:pointer; }
-  button.secondary { background:transparent; color:var(--accent); border:1px solid var(--line); }
-  .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
-  .pill { display:inline-block; padding:2px 10px; border-radius:999px; font-weight:600; font-size:13px; color:#fff; }
-  .ALLOW { background:var(--allow); } .REVIEW { background:var(--review); } .BLOCK { background:var(--block); }
-  .muted { color: var(--muted); font-size: 13px; }
-  table { width:100%; border-collapse:collapse; font-size:14px; } td, th { text-align:left; padding:6px 4px; border-bottom:1px solid var(--line); }
+  [hidden] { display:none !important; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin:0; background:var(--bg); color:var(--ink);
+         font:15px/1.55 "IBM Plex Sans", system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+  a { color:var(--accent); }
+  :focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  .wrap { max-width:1120px; margin:0 auto; padding:0 16px; }
+
+  header { padding:28px 0 20px; display:flex; gap:16px; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; }
+  header h1 { margin:0; font-size:26px; font-weight:700; letter-spacing:-0.01em; }
+  header p { margin:2px 0 0; color:var(--muted); }
+  nav { display:flex; gap:6px; flex-wrap:wrap; }
+  nav a { text-decoration:none; padding:6px 12px; border-radius:6px; border:1px solid var(--line); background:var(--panel); color:var(--ink); font-size:14px; }
+  nav a:hover { border-color:var(--accent); }
+
+  .layout { display:grid; grid-template-columns: minmax(0,1fr) 300px; gap:20px; align-items:start; }
+  @media (max-width: 880px) { .layout { grid-template-columns: 1fr; } }
+  section { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:22px; margin-bottom:20px; }
+  h2 { margin:0 0 14px; font-size:17px; font-weight:600; }
+  .muted { color:var(--muted); font-size:13.5px; }
+
+  /* composer */
+  textarea { width:100%; min-height:110px; padding:14px 16px; border:1px solid var(--line); border-radius:8px;
+             background:var(--soft); color:inherit; resize:vertical;
+             font:19px/1.5 "IBM Plex Serif", Georgia, serif; }
+  textarea:focus { border-color:var(--accent); outline:none; background:var(--panel); }
+  .examples { display:flex; gap:6px; flex-wrap:wrap; margin:12px 0 4px; }
+  .examples button { font:13px "IBM Plex Sans", sans-serif; padding:5px 10px; border-radius:999px; border:1px solid var(--line);
+                     background:transparent; color:var(--ink); cursor:pointer; }
+  .examples button:hover { border-color:var(--accent); color:var(--accent); }
+  .controls { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:14px; }
+  .btn { font:600 14px "IBM Plex Sans", sans-serif; padding:10px 16px; border-radius:8px; border:1px solid var(--accent);
+         background:var(--accent); color:var(--on-accent); cursor:pointer; }
+  .btn.ghost { background:transparent; color:var(--accent); }
+  .btn:disabled { opacity:.55; cursor:progress; }
+  label.toggle { display:flex; gap:8px; align-items:center; font-size:13.5px; color:var(--muted); margin-left:auto; cursor:pointer; }
+  label.toggle input { accent-color: var(--accent); width:16px; height:16px; }
+
+  /* verdict */
+  .verdict { margin-top:20px; border-top:1px solid var(--line); padding-top:20px; display:none; }
+  .verdict.on { display:block; }
+  .vhead { display:flex; align-items:baseline; gap:14px; flex-wrap:wrap; }
+  .decision { font-size:40px; font-weight:700; letter-spacing:-0.02em; line-height:1; }
+  .decision.ALLOW { color:var(--allow); } .decision.REVIEW { color:var(--review); } .decision.BLOCK { color:var(--block); }
+  .score { font-size:15px; color:var(--muted); }
+  .score b { color:var(--ink); font-size:20px; }
+  .why { margin:6px 0 0; color:var(--muted); }
+
+  .rail { position:relative; margin:26px 0 8px; }
+  .zones { display:flex; height:12px; border-radius:6px; overflow:hidden; }
+  .zones div { height:100%; }
+  .z-allow { background:var(--allow-bg); border-right:2px solid var(--allow); }
+  .z-review { background:var(--review-bg); border-right:2px solid var(--block); }
+  .z-block { background:var(--block-bg); }
+  .marker { position:absolute; top:-8px; width:4px; height:28px; border-radius:2px; background:var(--ink);
+            transform:translateX(-50%); transition:left .45s cubic-bezier(.2,.8,.2,1); }
+  .marker span { position:absolute; top:-22px; left:50%; transform:translateX(-50%); font-size:12px; font-weight:600; white-space:nowrap; }
+  .scale { display:flex; justify-content:space-between; font-size:12px; color:var(--muted); }
+  .scale .lab { display:flex; gap:14px; }
+  @media (prefers-reduced-motion: reduce) { .marker { transition:none; } }
+
+  .readas { margin-top:16px; padding:10px 14px; border-radius:8px; background:var(--soft); font-size:14px; }
+  .readas q { font-family:"IBM Plex Serif", Georgia, serif; font-style:italic; }
+  .words { margin-top:16px; font:19px/2 "IBM Plex Serif", Georgia, serif; }
+  .words span { padding:2px 3px; border-radius:4px; }
+  .legend { display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--muted); margin-top:4px; }
+  .legend i { display:inline-block; width:90px; height:8px; border-radius:4px;
+              background:linear-gradient(90deg, rgba(var(--heat),0.05), rgba(var(--heat),0.6)); }
+  .flags { display:flex; gap:6px; flex-wrap:wrap; margin-top:14px; }
+  .flag { font-size:13px; padding:3px 10px; border-radius:6px; background:var(--block-bg); color:var(--block); font-weight:600; }
+  .cats { width:100%; margin-top:10px; font-size:13px; }
+  .cats td { padding:3px 0; } .cats .bar { width:55%; }
+  .cats .bar div { height:6px; border-radius:3px; background:var(--muted); opacity:.55; }
+  .meta { margin-top:14px; font-size:12.5px; color:var(--muted); }
+
+  /* side */
+  .count { display:grid; grid-template-columns: 1fr auto; gap:2px 10px; align-items:center; margin-bottom:12px; }
+  .count .n { font-size:22px; font-weight:700; text-align:right; }
+  .count .bar { grid-column: 1 / -1; height:6px; background:var(--soft); border-radius:3px; overflow:hidden; }
+  .count .bar div { height:100%; }
+  .total { font-size:34px; font-weight:700; line-height:1.1; }
+  .pending { display:block; margin-top:14px; padding:10px 12px; border-radius:8px; background:var(--review-bg); color:var(--ink); text-decoration:none; font-size:14px; }
+  .policy { font-size:13.5px; color:var(--muted); margin:0; }
+  .policy b { color:var(--ink); }
+
+  .pill { display:inline-block; padding:1px 9px; border-radius:999px; font-weight:600; font-size:12.5px; }
+  .pill.ALLOW { background:var(--allow-bg); color:var(--allow); }
+  .pill.REVIEW { background:var(--review-bg); color:var(--review); }
+  .pill.BLOCK { background:var(--block-bg); color:var(--block); }
+
+  table.list { width:100%; border-collapse:collapse; font-size:14px; }
+  table.list th { text-align:left; font-weight:500; color:var(--muted); font-size:13px; padding:6px 8px 6px 0; border-bottom:1px solid var(--line); }
+  table.list td { padding:9px 8px 9px 0; border-bottom:1px solid var(--line); vertical-align:top; }
+  table.list td.t { max-width:520px; overflow-wrap:anywhere; }
+  .scroll { overflow-x:auto; }
+
+  .drop { display:flex; gap:12px; align-items:center; flex-wrap:wrap; padding:16px; border:1.5px dashed var(--line); border-radius:10px; }
+  .drop input { font:inherit; max-width:100%; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:16px; }
+  @media (max-width:640px) { .grid2 { grid-template-columns:1fr; } }
   video { width:100%; border-radius:8px; background:#000; }
-  .grid { display:grid; grid-template-columns: 1fr 1fr; gap:12px; } @media (max-width:640px) { .grid { grid-template-columns:1fr; } }
-  a { color: var(--accent); }
+  footer { padding:10px 0 40px; color:var(--muted); font-size:13px; }
 </style>
 </head>
 <body>
-<main>
-  <h1>Real-time content moderation</h1>
-  <p class="sub">DistilBERT (INT8 ONNX) scores each post; a two-threshold policy decides ALLOW, REVIEW or BLOCK. <a href="/review/">Review queue</a> · <a href="/grafana/">Dashboards</a> · <a href="/docs">API</a></p>
-
-  <section class="card">
-    <h2>Moderate a post</h2>
-    <textarea id="text" placeholder="Type a comment…">You are an idiot and nobody wants you here.</textarea>
-    <div class="row">
-      <button onclick="instant()">Score instantly</button>
-      <button class="secondary" onclick="queue()">Submit through the queue</button>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Moderation console</h1>
+      <p id="modelline">Every post is scored by our fine-tuned DistilBERT and sorted into allow, review or block.</p>
     </div>
-    <p id="result" class="muted"></p>
-  </section>
+    <nav>
+      <a href="review/">Review queue</a>
+      <a href="grafana/">Live dashboards</a>
+      <a href="docs">API</a>
+    </nav>
+  </header>
 
-  <section class="card">
-    <h2>Censor a video</h2>
-    <div class="row"><input type="file" id="video" accept="video/*"><button onclick="upload()">Upload</button></div>
-    <p id="vstatus" class="muted"></p>
-    <div id="vout"></div>
-  </section>
+  <div class="layout">
+    <div>
+      <section aria-labelledby="h-post">
+        <h2 id="h-post">Check a comment</h2>
+        <textarea id="text" aria-label="Comment text">You are an idiot and nobody wants you here.</textarea>
+        <div class="examples" id="examples" aria-label="Example comments"></div>
+        <div class="controls">
+          <button class="btn" id="b-instant" onclick="instant()">Check now</button>
+          <button class="btn ghost" id="b-queue" onclick="queue()">Send through the queue</button>
+          <label class="toggle"><input type="checkbox" id="norm" checked> Undo disguised spelling</label>
+        </div>
 
-  <section class="card">
-    <h2>Recent decisions</h2>
-    <table><thead><tr><th>Text</th><th>Score</th><th>Decision</th></tr></thead><tbody id="recent"></tbody></table>
-  </section>
-</main>
+        <div class="verdict" id="verdict" aria-live="polite">
+          <div class="vhead">
+            <div class="decision" id="v-decision"></div>
+            <div class="score">score <b id="v-score"></b></div>
+          </div>
+          <p class="why" id="v-why"></p>
+          <div class="rail" aria-hidden="true">
+            <div class="zones"><div class="z-allow" id="z-allow"></div><div class="z-review" id="z-review"></div><div class="z-block" id="z-block"></div></div>
+            <div class="marker" id="marker"><span id="marker-lab"></span></div>
+          </div>
+          <div class="scale"><span>0 harmless</span><span id="scale-mid"></span><span>1 toxic</span></div>
+          <div class="readas" id="v-readas" hidden></div>
+          <div class="flags" id="v-flags"></div>
+          <div class="words" id="v-words"></div>
+          <div class="legend" id="v-legend" hidden><i></i> darker = removing this word lowers the score more</div>
+          <table class="cats" id="v-cats" hidden></table>
+          <div class="meta" id="v-meta"></div>
+        </div>
+      </section>
+
+      <section aria-labelledby="h-video">
+        <h2 id="h-video">Censor a video</h2>
+        <p class="muted" style="margin-top:-6px">Speech is transcribed, toxic words are found, and only those moments are muted.</p>
+        <div class="drop">
+          <input type="file" id="video" accept="video/*" aria-label="Video file">
+          <button class="btn" onclick="upload()">Upload and censor</button>
+        </div>
+        <p id="vstatus" class="muted"></p>
+        <div id="vout"></div>
+      </section>
+
+      <section aria-labelledby="h-recent">
+        <h2 id="h-recent">Latest decisions</h2>
+        <div class="scroll"><table class="list"><thead><tr><th>Comment</th><th>Score</th><th>Decision</th></tr></thead><tbody id="recent"></tbody></table></div>
+      </section>
+    </div>
+
+    <aside>
+      <section aria-labelledby="h-day">
+        <h2 id="h-day">Last 24 hours</h2>
+        <div class="total" id="s-total">0</div>
+        <p class="muted" style="margin:0 0 16px">comments decided</p>
+        <div id="s-counts"></div>
+        <a class="pending" id="s-pending" href="review/" hidden></a>
+      </section>
+      <section aria-labelledby="h-policy">
+        <h2 id="h-policy">How the decision is made</h2>
+        <p class="policy" id="policy">Loading the model settings…</p>
+      </section>
+    </aside>
+  </div>
+  <footer>Team SAP. Built on AWS with k3s, Redis Streams, ONNX Runtime and Whisper.</footer>
+</div>
+
 <script>
 const $ = id => document.getElementById(id);
-const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const pill = d => `<span class="pill ${d}">${d}</span>`;
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const pill = d => `<span class="pill ${d}">${d.toLowerCase()}</span>`;
+let cfg = { t_low: 0.3, t_high: 0.75, categories: {} };
+
+const EXAMPLES = [
+  ['Plain insult', 'You are an idiot and nobody wants you here.'],
+  ['Disguised', 'ur such an 1d10t, l0s3r'],
+  ['Stretched', 'you are sooooo stuuuuupid'],
+  ['Spaced out', 'what an i d i o t'],
+  ['Look-alike letters', 'shut up, іdіоt'],
+  ['Threat', 'I know where you live and I will hurt you.'],
+  ['Identity mention', 'I am a proud gay man and a teacher.'],
+  ['Friendly', 'Thanks for the help, this fixed my bug!'],
+];
+$('examples').innerHTML = EXAMPLES.map(([l], i) => `<button type="button" data-i="${i}">${esc(l)}</button>`).join('');
+$('examples').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  $('text').value = EXAMPLES[b.dataset.i][1]; instant();
+});
+$('text').addEventListener('keydown', e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) instant(); });
+
+const DESCR = {
+  ALLOW: 'Clearly fine, so it is published straight away.',
+  REVIEW: 'The model is unsure, so a person checks it in the review queue.',
+  BLOCK: 'The model is very sure this is toxic, so it is removed automatically.',
+};
+
+async function loadConfig() {
+  try {
+    const c = await (await fetch('config')).json();
+    cfg = c;
+    $('z-allow').style.width = (c.t_low * 100) + '%';
+    $('z-review').style.width = ((c.t_high - c.t_low) * 100) + '%';
+    $('z-block').style.width = ((1 - c.t_high) * 100) + '%';
+    $('scale-mid').textContent = `allow below ${c.t_low.toFixed(2)}, block from ${c.t_high.toFixed(2)}`;
+    $('modelline').textContent = `Every post is scored by our fine-tuned DistilBERT (model ${c.model_version}) and sorted into allow, review or block.`;
+    const cats = Object.entries(c.categories || {});
+    $('policy').innerHTML =
+      `Score below <b>${c.t_low.toFixed(2)}</b>: allowed. From <b>${c.t_low.toFixed(2)}</b> to <b>${c.t_high.toFixed(2)}</b>: a person reviews it. ` +
+      `From <b>${c.t_high.toFixed(2)}</b>: blocked. Scores are calibrated (temperature ${c.temperature.toFixed(2)}), so 0.9 means toxic about 9 times in 10.` +
+      (cats.length ? `<br><br>The model also scores ${c.labels.length} categories and flags ${cats.map(([k, v]) => `${esc(k.replace('_', ' '))} from ${v.toFixed(2)}`).join(', ')}.` : '');
+  } catch (e) { $('policy').textContent = 'The text worker is not reachable yet.'; }
+}
+
+function busy(on) { $('b-instant').disabled = on; $('b-queue').disabled = on; }
+
+function render(j, extra) {
+  $('verdict').classList.add('on');
+  $('v-decision').className = 'decision ' + j.decision;
+  $('v-decision').textContent = j.decision.charAt(0) + j.decision.slice(1).toLowerCase();
+  $('v-score').textContent = j.score.toFixed(3);
+  $('v-why').textContent = DESCR[j.decision];
+  const pos = Math.min(Math.max(j.score, 0.004), 0.996) * 100;
+  $('marker').style.left = pos + '%';
+  $('marker-lab').textContent = j.score.toFixed(2);
+
+  if (j.normalized) {
+    $('v-readas').hidden = false;
+    $('v-readas').innerHTML = `Read as <q>${esc(j.normalized)}</q>. Disguised spelling was undone before scoring.`;
+  } else $('v-readas').hidden = true;
+
+  $('v-flags').innerHTML = (j.flags || []).map(f => `<span class="flag">${esc(f.replace('_', ' '))} ${(j.categories[f] ?? 0).toFixed(2)}</span>`).join('');
+
+  const cats = Object.entries(j.categories || {});
+  $('v-cats').hidden = !cats.length;
+  $('v-cats').innerHTML = cats.map(([k, v]) =>
+    `<tr><td>${esc(k.replace('_', ' '))}</td><td class="bar"><div style="width:${Math.max(v * 100, 1)}%"></div></td><td style="text-align:right">${v.toFixed(2)}</td></tr>`).join('');
+
+  if (j.words) {
+    const max = Math.max(0.15, ...j.words.map(w => w.weight));
+    $('v-words').innerHTML = j.words.map(w => {
+      const a = w.weight > 0.01 ? Math.min(w.weight / max, 1) * 0.6 : 0;
+      return `<span style="background:rgba(var(--heat),${a.toFixed(2)})" title="${w.weight >= 0 ? '+' : ''}${w.weight.toFixed(3)}">${esc(w.word)}</span>`;
+    }).join(' ');
+    $('v-legend').hidden = false;
+  } else { $('v-words').innerHTML = ''; $('v-legend').hidden = true; }
+  $('v-meta').textContent = extra;
+}
 
 async function instant() {
+  const text = $('text').value.trim(); if (!text) return;
+  busy(true);
   const t0 = performance.now();
-  const r = await fetch('classify', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({text: $('text').value})});
-  const j = await r.json();
-  if (!r.ok) { $('result').textContent = j.detail || 'error'; return; }
-  $('result').innerHTML = `${pill(j.decision)} score ${j.score.toFixed(3)} · model ${esc(j.model_version)} · inference ${j.latency_ms} ms · round trip ${Math.round(performance.now()-t0)} ms`;
+  try {
+    const r = await fetch('explain', { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ text, normalize: $('norm').checked }) });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.detail || 'request failed');
+    render(j, `Model ${j.model_version}. Scoring took ${j.latency_ms} ms, word explanations ${j.explain_ms} ms, round trip ${Math.round(performance.now() - t0)} ms.`);
+  } catch (e) { $('verdict').classList.add('on'); $('v-decision').className = 'decision'; $('v-decision').textContent = 'Not checked'; $('v-why').textContent = e.message; }
+  busy(false);
 }
 
 async function queue() {
-  const r = await fetch('posts', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({text: $('text').value})});
-  const {post_id} = await r.json();
-  $('result').textContent = `Queued ${post_id}; waiting for the worker…`;
-  for (let i = 0; i < 30; i++) {
+  const text = $('text').value.trim(); if (!text) return;
+  busy(true);
+  const r = await fetch('posts', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ text }) });
+  const { post_id } = await r.json();
+  $('verdict').classList.add('on'); $('v-decision').className = 'decision'; $('v-decision').textContent = 'Queued';
+  $('v-why').textContent = 'Accepted instantly. Waiting for a worker to take it from the Redis queue…';
+  for (let i = 0; i < 40; i++) {
     await new Promise(res => setTimeout(res, 500));
     const j = await (await fetch('posts/' + post_id)).json();
-    if (j.decision) { $('result').innerHTML = `${pill(j.decision)} score ${j.score.toFixed(3)} · written to Postgres by the queue worker`; loadRecent(); return; }
+    if (j.decision) {
+      let words = null;
+      try { words = (await (await fetch('explain', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ text }) })).json()).words; } catch (e) {}
+      render({ ...j, categories: j.categories || {}, flags: j.flags ? j.flags.split(',') : [], words },
+             `Decided by a queue worker and saved to Postgres as post ${post_id.slice(0, 8)}.`);
+      busy(false); loadRecent(); loadStats(); return;
+    }
   }
-  $('result').textContent = 'Still pending; is the text worker running?';
+  $('v-why').textContent = 'Still waiting. Check that the text worker is running.';
+  busy(false);
 }
 
 async function upload() {
-  const f = $('video').files[0]; if (!f) return;
+  const f = $('video').files[0]; if (!f) { $('vstatus').textContent = 'Choose a video file first.'; return; }
   const fd = new FormData(); fd.append('file', f);
   $('vstatus').textContent = 'Uploading…'; $('vout').innerHTML = '';
-  const r = await fetch('videos', {method:'POST', body: fd}); const j = await r.json();
-  if (!r.ok) { $('vstatus').textContent = j.detail || 'upload failed'; return; }
+  const r = await fetch('videos', { method:'POST', body: fd }); const j = await r.json();
+  if (!r.ok) { $('vstatus').textContent = j.detail || 'Upload failed.'; return; }
   for (let i = 0; i < 240; i++) {
     const v = await (await fetch('videos/' + j.video_id)).json();
-    $('vstatus').textContent = `Status: ${v.status}` + (v.processing_s ? ` · processed in ${v.processing_s.toFixed(1)} s` : '');
+    $('vstatus').textContent = { queued: 'Waiting for the video worker…', processing: 'Transcribing and censoring…', done: 'Done', failed: 'Failed' }[v.status] +
+      (v.processing_s ? ` in ${v.processing_s.toFixed(1)} s.` : '');
     if (v.status === 'done' || v.status === 'failed') {
-      if (v.status === 'failed') { $('vstatus').textContent += ` · ${v.error || ''}`; return; }
-      const spans = v.spans.map(s => `<tr><td>${s.start_s.toFixed(2)}–${s.end_s.toFixed(2)} s</td><td>${esc(s.text)}</td><td>${s.score.toFixed(2)}</td></tr>`).join('') || '<tr><td colspan="3">No toxic speech found</td></tr>';
-      $('vout').innerHTML = `<div class="grid"><div><p class="muted">Original</p><video controls src="${v.original_url}"></video></div>
+      if (v.status === 'failed') { $('vstatus').textContent += ' ' + (v.error || ''); return; }
+      const spans = v.spans.map(s => `<tr><td>${s.start_s.toFixed(2)}–${s.end_s.toFixed(2)} s</td><td>${esc(s.text)}</td><td>${s.score.toFixed(2)}</td></tr>`).join('')
+        || '<tr><td colspan="3">No toxic speech found, nothing was muted.</td></tr>';
+      $('vout').innerHTML = `<div class="grid2"><div><p class="muted">Original</p><video controls src="${v.original_url}"></video></div>
         <div><p class="muted">Censored</p><video controls src="${v.clean_url}"></video></div></div>
-        <table><thead><tr><th>Muted span</th><th>Words</th><th>Score</th></tr></thead><tbody>${spans}</tbody></table>`;
+        <div class="scroll"><table class="list" style="margin-top:12px"><thead><tr><th>Muted</th><th>Words</th><th>Score</th></tr></thead><tbody>${spans}</tbody></table></div>`;
       return;
     }
     await new Promise(res => setTimeout(res, 2000));
@@ -105,11 +349,29 @@ async function upload() {
 
 async function loadRecent() {
   try {
-    const rows = await (await fetch('posts?limit=10')).json();
-    $('recent').innerHTML = rows.map(p => `<tr><td>${esc(p.text || '')}</td><td>${p.score.toFixed(3)}</td><td>${pill(p.decision)}</td></tr>`).join('');
+    const rows = await (await fetch('posts?limit=12')).json();
+    $('recent').innerHTML = rows.map(p => `<tr><td class="t">${esc(p.text || '')}${p.flags ? ` <span class="flag">${esc(p.flags.replace(/_/g, ' ').replace(/,/g, ', '))}</span>` : ''}</td><td>${p.score.toFixed(3)}</td><td>${pill(p.decision)}</td></tr>`).join('')
+      || '<tr><td colspan="3" class="muted">Nothing yet. Send a comment through the queue to see it here.</td></tr>';
   } catch (e) {}
 }
-loadRecent();
+
+async function loadStats() {
+  try {
+    const s = await (await fetch('stats')).json();
+    $('s-total').textContent = s.total.toLocaleString();
+    const colors = { ALLOW:'var(--allow)', REVIEW:'var(--review)', BLOCK:'var(--block)' };
+    $('s-counts').innerHTML = ['ALLOW', 'REVIEW', 'BLOCK'].map(d => {
+      const pct = s.total ? s[d] / s.total * 100 : 0;
+      return `<div class="count"><span>${d.charAt(0) + d.slice(1).toLowerCase()} <span class="muted">${pct.toFixed(0)}%</span></span><span class="n">${s[d].toLocaleString()}</span>
+        <div class="bar"><div style="width:${pct}%;background:${colors[d]}"></div></div></div>`;
+    }).join('');
+    $('s-pending').hidden = !s.review_pending;
+    $('s-pending').textContent = `${s.review_pending} waiting for a person. Open the review queue.`;
+  } catch (e) {}
+}
+
+loadConfig(); loadRecent(); loadStats();
+setInterval(loadStats, 10000);
 </script>
 </body>
 </html>

@@ -39,8 +39,9 @@ class DB:
                 for stmt in schema_statements():
                     self.execute(stmt)
                 return
-            except psycopg.errors.UniqueViolation:
-                # Two pods created the same table at the same moment; the other one won.
+            except (psycopg.errors.UniqueViolation, psycopg.errors.DuplicateColumn,
+                    psycopg.errors.DuplicateObject, psycopg.errors.InternalError_):
+                # Two pods created/altered the same table at the same moment; the other one won.
                 time.sleep(1)
         log.warning("schema creation raced 3 times; continuing")
 

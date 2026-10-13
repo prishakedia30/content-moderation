@@ -1,4 +1,5 @@
 """Human review UI: moderators clear the REVIEW queue, see the decision mix, and check censored videos."""
+import html
 import json
 import os
 import urllib.request
@@ -30,6 +31,29 @@ def query(sql, params=None):
         return pd.DataFrame(cur.fetchall(), columns=[c.name for c in cur.description])
 
 
+@st.cache_data(ttl=600, show_spinner=False)
+def explain(text):
+    """Per-word contributions from the text worker (via the ingest API); None if unavailable."""
+    req = urllib.request.Request(f"{INGEST_URL}/explain", data=json.dumps({"text": text}).encode(),
+                                 headers={"Content-Type": "application/json"})
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            return json.load(resp)
+    except Exception:
+        return None
+
+
+def highlighted(words):
+    """Words as HTML, background darker the more the word pushes the score up."""
+    top = max([0.15] + [w["weight"] for w in words])
+    parts = []
+    for w in words:
+        a = min(max(w["weight"], 0) / top, 1) * 0.6 if w["weight"] > 0.01 else 0
+        parts.append(f'<span title="{w["weight"]:+.3f}" style="background:rgba(214,60,80,{a:.2f});'
+                     f'padding:1px 3px;border-radius:4px">{html.escape(w["word"])}</span>')
+    return '<div style="font-size:1.1rem;line-height:2">' + " ".join(parts) + "</div>"
+
+
 def set_verdict(post_id, verdict):
     query("UPDATE decisions SET review_status=%s, reviewed_at=now() WHERE post_id=%s", (verdict, post_id))
 
@@ -38,7 +62,7 @@ st.title("Moderation review")
 queue_tab, overview_tab, video_tab = st.tabs(["Review queue", "Overview", "Videos"])
 
 with queue_tab:
-    pending = query("SELECT post_id, text, score, ts FROM decisions "
+    pending = query("SELECT post_id, text, score, ts, flags, normalized, categories FROM decisions "
                     "WHERE decision='REVIEW' AND review_status IS NULL ORDER BY ts LIMIT 25")
     st.caption(f"{len(pending)} post(s) waiting, oldest first. "
                "These scored between the two thresholds, so a person decides.")
@@ -46,9 +70,23 @@ with queue_tab:
         st.success("Queue is empty.")
     for row in pending.itertuples():
         with st.container(border=True):
-            st.write(row.text or "(no text)")
+            ex = explain(row.text) if row.text else None
+            if ex and ex.get("words"):
+                st.markdown(highlighted(ex["words"]), unsafe_allow_html=True)
+            else:
+                st.write(row.text or "(no text)")
+            notes = []
+            if row.flags:
+                cats = row.categories or {}
+                notes.append("**flagged:** " + ", ".join(
+                    f"{f.replace('_', ' ')} {cats.get(f, 0):.2f}" for f in row.flags.split(",")))
+            if row.normalized:
+                notes.append(f"**read as:** _{row.normalized}_")
+            if notes:
+                st.markdown(" &nbsp; ".join(notes))
             c1, c2, c3 = st.columns([1, 1, 6])
-            c3.caption(f"score {row.score:.3f} · {row.ts:%Y-%m-%d %H:%M:%S}")
+            c3.caption(f"score {row.score:.3f} · {row.ts:%Y-%m-%d %H:%M:%S} · "
+                       "red = words that push the score up")
             if c1.button("Allow", key=f"a{row.post_id}", type="primary"):
                 set_verdict(row.post_id, "ALLOW")
                 st.rerun()
@@ -72,7 +110,7 @@ with overview_tab:
         st.caption("Human verdicts on REVIEW posts: " +
                    ", ".join(f"{r.review_status} {r.posts}" for r in reviewed.itertuples()))
     st.subheader("Latest decisions")
-    st.dataframe(query("SELECT ts, decision, round(score::numeric, 3) AS score, model_version, "
+    st.dataframe(query("SELECT ts, decision, round(score::numeric, 3) AS score, flags, model_version, "
                        "round(latency_ms::numeric, 2) AS latency_ms, review_status, text "
                        "FROM decisions ORDER BY ts DESC LIMIT 100"),
                  use_container_width=True, hide_index=True)

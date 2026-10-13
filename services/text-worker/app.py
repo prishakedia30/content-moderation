@@ -2,6 +2,7 @@
 - POST /classify, /classify/batch: synchronous scoring (used by the ingest API, video worker, load tests)
 - background consumer: reads the Redis stream posts.raw, writes a row to `decisions`, emits posts.decided
 - /health, /ready, /metrics for Kubernetes and Prometheus"""
+import json
 import logging
 import os
 import socket
@@ -19,8 +20,9 @@ from fastapi import FastAPI, HTTPException, Response
 from prometheus_client import CONTENT_TYPE_LATEST, Counter, Gauge, Histogram, generate_latest
 from pydantic import BaseModel, Field
 
-from classifier import MockClassifier, OnnxClassifier
-from decision import decide, load_thresholds
+from classifier import MockClassifier, OnnxClassifier, explain
+from decision import decide, flags, load_thresholds
+from normalize import Normalizer, vocab_from_tokenizer
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 log = logging.getLogger("text-worker")
@@ -31,6 +33,7 @@ MODEL_FILE = os.environ.get("MODEL_FILE", "model.int8.onnx")
 MODEL_MODE = os.environ.get("MODEL_MODE", "onnx")          # onnx | mock
 REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
 CONSUMER_ENABLED = os.environ.get("CONSUMER_ENABLED", "1") == "1"
+NORMALIZE = os.environ.get("NORMALIZE", "1") == "1"   # default for callers that don't say
 STREAM_IN, STREAM_OUT, GROUP = "posts.raw", "posts.decided", "text-workers"
 
 DECISIONS = Counter("moderation_decisions_total", "Moderation decisions", ["decision", "source"])
@@ -39,7 +42,7 @@ INFER_S = Histogram("moderation_inference_seconds", "Model scoring time per text
 QUEUE_LAG = Gauge("moderation_queue_lag", "Messages waiting in a stream", ["stream"])
 ERRORS = Counter("moderation_errors_total", "Errors while processing", ["where"])
 
-state = {"clf": None, "cfg": None, "version": MODEL_VERSION}
+state = {"clf": None, "cfg": None, "version": MODEL_VERSION, "norm": Normalizer()}
 stop = threading.Event()
 
 
@@ -62,18 +65,37 @@ def load_model():
     else:
         fetch_model()
         state["cfg"] = load_thresholds(MODEL_DIR)
-        state["clf"] = OnnxClassifier(MODEL_DIR, MODEL_FILE, state["cfg"]["temperature"])
+        cfg = state["cfg"]
+        state["clf"] = OnnxClassifier(MODEL_DIR, MODEL_FILE, cfg["temperature"],
+                                      temperatures=cfg["temperatures"], labels=cfg["labels"])
+        state["norm"] = Normalizer(vocab_from_tokenizer(state["clf"].tok))
     log.info("model %s ready, thresholds %s", state["version"], state["cfg"])
 
 
-def classify(text, source):
+def score_text(text, normalize):
+    """Score the text as written and, if normalizing changes it, the normalized version too;
+    keep whichever is more toxic. So normalization can only catch more, never hide a post."""
+    norm = state["norm"](text) if normalize else text
+    changed = norm != " ".join(text.split())
+    if not changed:
+        main, cats = state["clf"].score_full(text)
+        return main, cats, None
+    (s1, c1), (s2, c2) = state["clf"].score_many([text, norm])
+    return (s2, c2, norm) if s2 >= s1 else (s1, c1, norm)
+
+
+def classify(text, source, normalize=None):
+    normalize = NORMALIZE if normalize is None else normalize
     t0 = time.perf_counter()
-    score = state["clf"].score(text)
+    score, cats, normalized = score_text(text, normalize)
     dt = time.perf_counter() - t0
     INFER_S.observe(dt)
-    decision = decide(score, state["cfg"]["t_low"], state["cfg"]["t_high"])
+    cfg = state["cfg"]
+    decision = decide(score, cfg["t_low"], cfg["t_high"])
     DECISIONS.labels(decision, source).inc()
     return {"score": round(score, 4), "decision": decision,
+            "categories": cats, "flags": flags(cats, cfg["categories"]),
+            "normalized": normalized,
             "model_version": state["version"], "latency_ms": round(dt * 1000, 2)}
 
 
@@ -93,9 +115,12 @@ def handle(r, db, fields):
         return
     out = classify(text, "stream")
     db.execute(
-        """INSERT INTO decisions (post_id, score, decision, model_version, latency_ms, text)
-           VALUES (%s, %s, %s, %s, %s, %s) ON CONFLICT (post_id) DO NOTHING""",
-        (post_id, out["score"], out["decision"], out["model_version"], out["latency_ms"], text))
+        """INSERT INTO decisions (post_id, score, decision, model_version, latency_ms, text,
+                                 categories, flags, normalized)
+           VALUES (%s, %s, %s, %s, %s, %s, %s::jsonb, %s, %s) ON CONFLICT (post_id) DO NOTHING""",
+        (post_id, out["score"], out["decision"], out["model_version"], out["latency_ms"], text,
+         json.dumps(out["categories"]) if out["categories"] else None,
+         ",".join(out["flags"]) or None, out["normalized"]))
     r.xadd(STREAM_OUT, {"post_id": post_id, "decision": out["decision"], "score": out["score"]},
            maxlen=10000, approximate=True)
 
@@ -172,10 +197,17 @@ app = FastAPI(title="text-worker", lifespan=lifespan)
 class TextIn(BaseModel):
     text: str = Field(max_length=10_000)
     source: Literal["api", "video"] = "api"   # video span checks are counted separately
+    normalize: bool | None = None             # None = server default (on)
 
 
 class BatchIn(BaseModel):
     texts: list[str] = Field(max_length=256)
+    normalize: bool | None = None
+
+
+class ExplainIn(BaseModel):
+    text: str = Field(max_length=5_000)
+    normalize: bool | None = None
 
 
 @app.get("/health")
@@ -187,17 +219,34 @@ def health():
 def ready():
     if state["clf"] is None:
         raise HTTPException(503, "model not loaded")
-    return {"status": "ready", "model_version": state["version"], **state["cfg"]}
+    cfg = state["cfg"]
+    return {"status": "ready", "model_version": state["version"],
+            "multilabel": bool(getattr(state["clf"], "multilabel", False)),
+            "labels": list(getattr(state["clf"], "labels", []) or []),
+            "normalize_default": NORMALIZE,
+            **{k: cfg[k] for k in ("t_low", "t_high", "temperature", "categories")}}
 
 
 @app.post("/classify")
 def classify_one(body: TextIn):
-    return classify(body.text, body.source)
+    return classify(body.text, body.source, body.normalize)
 
 
 @app.post("/classify/batch")
 def classify_batch(body: BatchIn):
-    return [classify(t, "api") for t in body.texts]
+    return [classify(t, "api", body.normalize) for t in body.texts]
+
+
+@app.post("/explain")
+def explain_one(body: ExplainIn):
+    """Word-level reasons for a score (occlusion), on the text the model actually scored."""
+    out = classify(body.text, "explain", body.normalize)
+    scored = out["normalized"] or body.text
+    t0 = time.perf_counter()
+    _, words = explain(state["clf"], scored)
+    out["words"] = words
+    out["explain_ms"] = round((time.perf_counter() - t0) * 1000, 1)
+    return out
 
 
 @app.get("/metrics")

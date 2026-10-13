@@ -17,6 +17,13 @@ CREATE TABLE IF NOT EXISTS decisions (
     reviewed_at    TIMESTAMPTZ
 );
 
+-- extra (v2): category probabilities from a multi-label model, flagged categories
+-- ("threat,insult") and the normalized text when obfuscation was undone. Added with
+-- ALTER so databases created before this change get the columns too.
+ALTER TABLE decisions ADD COLUMN IF NOT EXISTS categories JSONB;
+ALTER TABLE decisions ADD COLUMN IF NOT EXISTS flags      TEXT;
+ALTER TABLE decisions ADD COLUMN IF NOT EXISTS normalized TEXT;
+
 -- The review queue: REVIEW-band posts nobody has judged yet, oldest first.
 CREATE INDEX IF NOT EXISTS decisions_review_queue
     ON decisions (ts) WHERE decision = 'REVIEW' AND review_status IS NULL;

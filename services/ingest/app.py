@@ -2,6 +2,7 @@
 - POST /posts        -> queue a post on Redis stream posts.raw (async moderation), returns post_id
 - GET  /posts/{id}   -> the decision once the text worker has written it
 - POST /classify     -> synchronous score via the text worker (demo + load tests)
+- POST /explain      -> score + per-word contributions;  GET /config -> thresholds;  GET /stats
 - POST /videos       -> upload a video to storage, queue it on videos.raw
 - GET  /videos/{id}  -> status, toxic spans, links to the original and censored files
 - GET  /             -> small demo page"""
@@ -31,6 +32,7 @@ log = logging.getLogger("ingest")
 
 REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
 CLASSIFY_URL = os.environ.get("CLASSIFY_URL", "http://text-worker:8000/classify")
+WORKER_URL = CLASSIFY_URL.rsplit("/classify", 1)[0]       # text-worker base URL
 MAX_VIDEO_MB = int(os.environ.get("MAX_VIDEO_MB", "100"))
 VIDEO_EXT = {".mp4", ".mov", ".mkv", ".webm", ".m4v"}
 
@@ -100,6 +102,12 @@ class PostIn(BaseModel):
 
 class TextIn(BaseModel):
     text: str = Field(min_length=1, max_length=5000)
+    normalize: bool | None = None     # None = text-worker default (on)
+
+
+class BatchIn(BaseModel):
+    texts: list[str] = Field(min_length=1, max_length=256)
+    normalize: bool | None = None
 
 
 @app.get("/health")
@@ -132,26 +140,61 @@ def create_post(post: PostIn):
 @app.get("/posts/{post_id}")
 def get_post(post_id: str):
     rows = get_db().execute(
-        "SELECT post_id, score, decision, model_version, latency_ms, ts, review_status "
-        "FROM decisions WHERE post_id = %s", (post_id,), fetch=True)
+        "SELECT post_id, score, decision, model_version, latency_ms, ts, review_status, "
+        "categories, flags, normalized FROM decisions WHERE post_id = %s", (post_id,), fetch=True)
     return rows[0] if rows else {"post_id": post_id, "status": "pending"}
 
 
 @app.get("/posts")
 def recent_posts(limit: int = 20):
     return get_db().execute(
-        "SELECT post_id, text, score, decision, ts, review_status FROM decisions "
+        "SELECT post_id, text, score, decision, ts, review_status, flags, normalized FROM decisions "
         "ORDER BY ts DESC LIMIT %s", (min(limit, 200),), fetch=True)
 
 
-@app.post("/classify")
-async def classify(body: TextIn):
+async def worker(method, path, **kw):
     try:
-        resp = await app.state.http.post(CLASSIFY_URL, json={"text": body.text})
+        resp = await app.state.http.request(method, WORKER_URL + path, **kw)
         resp.raise_for_status()
     except httpx.HTTPError as e:
         raise HTTPException(503, f"text worker unavailable: {e.__class__.__name__}")
     return resp.json()
+
+
+@app.post("/classify")
+async def classify(body: TextIn):
+    return await worker("POST", "/classify", json=body.model_dump(exclude_none=True))
+
+
+@app.post("/classify/batch")
+async def classify_batch(body: BatchIn):
+    """Up to 256 texts in one call (used by the robustness and bias evaluations)."""
+    return await worker("POST", "/classify/batch", json=body.model_dump(exclude_none=True), timeout=60)
+
+
+@app.post("/explain")
+async def explain(body: TextIn):
+    """Score + how much each word contributed (leave-one-word-out occlusion)."""
+    return await worker("POST", "/explain", json=body.model_dump(exclude_none=True), timeout=30)
+
+
+@app.get("/config")
+async def config():
+    """Model version, thresholds and categories, so the page can draw the threshold zones."""
+    return await worker("GET", "/ready")
+
+
+@app.get("/stats")
+def stats(hours: int = 24):
+    rows = get_db().execute(
+        "SELECT decision, count(*) AS n FROM decisions WHERE ts > now() - make_interval(hours => %s) "
+        "GROUP BY decision", (min(max(hours, 1), 24 * 30),), fetch=True)
+    by = {r["decision"]: int(r["n"]) for r in rows}
+    pending = get_db().execute(
+        "SELECT count(*) AS n FROM decisions WHERE decision = 'REVIEW' AND review_status IS NULL",
+        fetch=True)
+    return {"hours": hours, "total": sum(by.values()), **{d: by.get(d, 0) for d in ("ALLOW", "REVIEW", "BLOCK")},
+            "review_pending": int(pending[0]["n"]) if pending else 0}
 
 
 @app.post("/videos", status_code=202)
