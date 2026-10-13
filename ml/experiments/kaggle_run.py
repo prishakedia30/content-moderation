@@ -18,7 +18,8 @@ def sh(*cmd):
     return subprocess.run(cmd).returncode
 
 
-sh(sys.executable, "-m", "pip", "install", "-q", "onnx==1.17.0", "onnxruntime==1.20.1")
+# unpinned: pinned onnx 1.17 has no wheel for Kaggle's Python; export_onnx keeps the files loadable by the server
+sh(sys.executable, "-m", "pip", "install", "-q", "onnx", "onnxruntime")
 try:
     from kaggle_secrets import UserSecretsClient
     s = UserSecretsClient()

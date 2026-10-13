@@ -283,6 +283,16 @@ class _Wrap(torch.nn.Module):
         return self.m(input_ids=input_ids, attention_mask=attention_mask).logits
 
 
+def _cap_ir_version(path, max_ir=10):
+    """The server runs onnxruntime 1.20, which reads ONNX IR version <= 10. Newer onnx/torch may
+    stamp a higher version on an otherwise identical opset-17 graph, so cap it."""
+    import onnx
+    m = onnx.load(str(path), load_external_data=False)
+    if m.ir_version > max_ir:
+        m.ir_version = max_ir
+        onnx.save(m, str(path))
+
+
 def export_onnx(model, tok, out_dir, quantize=True):
     """FP32 ONNX (+ INT8 dynamic quantization) with the tokenizer, in the layout the text-worker loads."""
     from onnxruntime.quantization import QuantType, quantize_dynamic
@@ -304,6 +314,8 @@ def export_onnx(model, tok, out_dir, quantize=True):
         int8 = out_dir / "model.int8.onnx"
         quantize_dynamic(str(fp32), str(int8), weight_type=QuantType.QInt8)
         paths["int8"] = int8
+    for p in paths.values():
+        _cap_ir_version(p)
     del m
     return paths
 
