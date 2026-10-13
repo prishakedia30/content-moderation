@@ -1,0 +1,68 @@
+[
+ {
+  "start": 0.4,
+  "end": 0.779,
+  "text": "this",
+  "toxic": false
+ },
+ {
+  "start": 0.905,
+  "end": 1.373,
+  "text": "cloud",
+  "toxic": false
+ },
+ {
+  "start": 1.526,
+  "end": 2.158,
+  "text": "project",
+  "toxic": false
+ },
+ {
+  "start": 2.315,
+  "end": 2.815,
+  "text": "uses",
+  "toxic": false
+ },
+ {
+  "start": 3.005,
+  "end": 3.742,
+  "text": "Kubernetes",
+  "toxic": false
+ },
+ {
+  "start": 3.837,
+  "end": 4.39,
+  "text": "Redis",
+  "toxic": false
+ },
+ {
+  "start": 4.548,
+  "end": 4.934,
+  "text": "and",
+  "toxic": false
+ },
+ {
+  "start": 5.049,
+  "end": 5.342,
+  "text": "a",
+  "toxic": false
+ },
+ {
+  "start": 5.461,
+  "end": 5.924,
+  "text": "small",
+  "toxic": false
+ },
+ {
+  "start": 6.112,
+  "end": 6.821,
+  "text": "language",
+  "toxic": false
+ },
+ {
+  "start": 6.972,
+  "end": 7.446,
+  "text": "model",
+  "toxic": false
+ }
+]

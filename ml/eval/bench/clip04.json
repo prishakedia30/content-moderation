@@ -1,0 +1,86 @@
+[
+ {
+  "start": 0.4,
+  "end": 0.712,
+  "text": "I",
+  "toxic": false
+ },
+ {
+  "start": 0.808,
+  "end": 1.242,
+  "text": "told",
+  "toxic": false
+ },
+ {
+  "start": 1.381,
+  "end": 1.699,
+  "text": "him",
+  "toxic": false
+ },
+ {
+  "start": 1.885,
+  "end": 2.187,
+  "text": "the",
+  "toxic": false
+ },
+ {
+  "start": 2.288,
+  "end": 2.732,
+  "text": "plan",
+  "toxic": false
+ },
+ {
+  "start": 2.881,
+  "end": 3.333,
+  "text": "twice",
+  "toxic": false
+ },
+ {
+  "start": 4.035,
+  "end": 4.362,
+  "text": "he",
+  "toxic": false
+ },
+ {
+  "start": 4.549,
+  "end": 4.816,
+  "text": "is",
+  "toxic": false
+ },
+ {
+  "start": 4.976,
+  "end": 5.241,
+  "text": "a",
+  "toxic": false
+ },
+ {
+  "start": 5.444,
+  "end": 6.014,
+  "text": "complete",
+  "toxic": false
+ },
+ {
+  "start": 6.138,
+  "end": 6.641,
+  "text": "moron",
+  "toxic": true
+ },
+ {
+  "start": 6.818,
+  "end": 7.165,
+  "text": "and",
+  "toxic": false
+ },
+ {
+  "start": 7.329,
+  "end": 7.811,
+  "text": "never",
+  "toxic": false
+ },
+ {
+  "start": 7.972,
+  "end": 8.539,
+  "text": "listens",
+  "toxic": false
+ }
+]

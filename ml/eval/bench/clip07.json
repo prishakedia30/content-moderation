@@ -1,0 +1,86 @@
+[
+ {
+  "start": 0.4,
+  "end": 0.815,
+  "text": "the",
+  "toxic": false
+ },
+ {
+  "start": 0.972,
+  "end": 1.406,
+  "text": "food",
+  "toxic": false
+ },
+ {
+  "start": 1.61,
+  "end": 2.021,
+  "text": "was",
+  "toxic": false
+ },
+ {
+  "start": 2.216,
+  "end": 2.726,
+  "text": "cold",
+  "toxic": false
+ },
+ {
+  "start": 2.927,
+  "end": 3.331,
+  "text": "and",
+  "toxic": false
+ },
+ {
+  "start": 3.45,
+  "end": 3.865,
+  "text": "the",
+  "toxic": false
+ },
+ {
+  "start": 4.003,
+  "end": 4.589,
+  "text": "waiter",
+  "toxic": false
+ },
+ {
+  "start": 4.719,
+  "end": 5.13,
+  "text": "was",
+  "toxic": false
+ },
+ {
+  "start": 5.334,
+  "end": 5.62,
+  "text": "a",
+  "toxic": false
+ },
+ {
+  "start": 5.834,
+  "end": 6.296,
+  "text": "rude",
+  "toxic": false
+ },
+ {
+  "start": 6.397,
+  "end": 6.891,
+  "text": "asshole",
+  "toxic": true
+ },
+ {
+  "start": 7.504,
+  "end": 8.052,
+  "text": "never",
+  "toxic": false
+ },
+ {
+  "start": 8.164,
+  "end": 8.606,
+  "text": "going",
+  "toxic": false
+ },
+ {
+  "start": 8.754,
+  "end": 9.102,
+  "text": "back",
+  "toxic": false
+ }
+]

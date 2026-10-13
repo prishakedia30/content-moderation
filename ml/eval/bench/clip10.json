@@ -1,0 +1,44 @@
+[
+ {
+  "start": 0.4,
+  "end": 0.859,
+  "text": "nice",
+  "toxic": false
+ },
+ {
+  "start": 1.014,
+  "end": 1.436,
+  "text": "try",
+  "toxic": false
+ },
+ {
+  "start": 1.649,
+  "end": 2.023,
+  "text": "bitch",
+  "toxic": true
+ },
+ {
+  "start": 2.657,
+  "end": 2.989,
+  "text": "but",
+  "toxic": false
+ },
+ {
+  "start": 3.098,
+  "end": 3.452,
+  "text": "you",
+  "toxic": false
+ },
+ {
+  "start": 3.584,
+  "end": 4.05,
+  "text": "lost",
+  "toxic": false
+ },
+ {
+  "start": 4.219,
+  "end": 4.73,
+  "text": "again",
+  "toxic": false
+ }
+]

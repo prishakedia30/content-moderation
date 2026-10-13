@@ -1,0 +1,74 @@
+[
+ {
+  "start": 0.4,
+  "end": 0.737,
+  "text": "what",
+  "toxic": false
+ },
+ {
+  "start": 0.949,
+  "end": 1.23,
+  "text": "the",
+  "toxic": false
+ },
+ {
+  "start": 1.376,
+  "end": 1.709,
+  "text": "fuck",
+  "toxic": true
+ },
+ {
+  "start": 1.882,
+  "end": 2.27,
+  "text": "were",
+  "toxic": false
+ },
+ {
+  "start": 2.358,
+  "end": 2.705,
+  "text": "you",
+  "toxic": false
+ },
+ {
+  "start": 2.884,
+  "end": 3.49,
+  "text": "thinking",
+  "toxic": false
+ },
+ {
+  "start": 4.359,
+  "end": 4.706,
+  "text": "we",
+  "toxic": false
+ },
+ {
+  "start": 4.901,
+  "end": 5.268,
+  "text": "had",
+  "toxic": false
+ },
+ {
+  "start": 5.388,
+  "end": 5.772,
+  "text": "one",
+  "toxic": false
+ },
+ {
+  "start": 5.906,
+  "end": 6.41,
+  "text": "simple",
+  "toxic": false
+ },
+ {
+  "start": 6.583,
+  "end": 6.889,
+  "text": "job",
+  "toxic": false
+ },
+ {
+  "start": 6.972,
+  "end": 7.479,
+  "text": "today",
+  "toxic": false
+ }
+]

@@ -1,0 +1,74 @@
+[
+ {
+  "start": 0.4,
+  "end": 0.704,
+  "text": "this",
+  "toxic": false
+ },
+ {
+  "start": 0.899,
+  "end": 1.23,
+  "text": "game",
+  "toxic": false
+ },
+ {
+  "start": 1.335,
+  "end": 1.593,
+  "text": "is",
+  "toxic": false
+ },
+ {
+  "start": 1.755,
+  "end": 2.051,
+  "text": "shit",
+  "toxic": true
+ },
+ {
+  "start": 2.22,
+  "end": 2.516,
+  "text": "and",
+  "toxic": false
+ },
+ {
+  "start": 2.648,
+  "end": 2.897,
+  "text": "the",
+  "toxic": false
+ },
+ {
+  "start": 3.053,
+  "end": 3.543,
+  "text": "stupid",
+  "toxic": true
+ },
+ {
+  "start": 3.632,
+  "end": 4.077,
+  "text": "referee",
+  "toxic": false
+ },
+ {
+  "start": 4.165,
+  "end": 4.554,
+  "text": "ruined",
+  "toxic": false
+ },
+ {
+  "start": 4.663,
+  "end": 4.911,
+  "text": "the",
+  "toxic": false
+ },
+ {
+  "start": 5.086,
+  "end": 5.422,
+  "text": "whole",
+  "toxic": false
+ },
+ {
+  "start": 5.561,
+  "end": 5.895,
+  "text": "match",
+  "toxic": false
+ }
+]

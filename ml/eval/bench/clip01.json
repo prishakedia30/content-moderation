@@ -1,0 +1,86 @@
+[
+ {
+  "start": 0.4,
+  "end": 0.982,
+  "text": "honestly",
+  "toxic": false
+ },
+ {
+  "start": 1.139,
+  "end": 1.508,
+  "text": "you",
+  "toxic": false
+ },
+ {
+  "start": 1.596,
+  "end": 1.974,
+  "text": "are",
+  "toxic": false
+ },
+ {
+  "start": 2.133,
+  "end": 2.561,
+  "text": "such",
+  "toxic": false
+ },
+ {
+  "start": 2.773,
+  "end": 3.153,
+  "text": "an",
+  "toxic": false
+ },
+ {
+  "start": 3.321,
+  "end": 3.775,
+  "text": "idiot",
+  "toxic": true
+ },
+ {
+  "start": 3.936,
+  "end": 4.67,
+  "text": "sometimes",
+  "toxic": false
+ },
+ {
+  "start": 5.355,
+  "end": 5.784,
+  "text": "can",
+  "toxic": false
+ },
+ {
+  "start": 5.871,
+  "end": 6.24,
+  "text": "you",
+  "toxic": false
+ },
+ {
+  "start": 6.351,
+  "end": 6.737,
+  "text": "pass",
+  "toxic": false
+ },
+ {
+  "start": 6.895,
+  "end": 7.287,
+  "text": "me",
+  "toxic": false
+ },
+ {
+  "start": 7.385,
+  "end": 7.688,
+  "text": "the",
+  "toxic": false
+ },
+ {
+  "start": 7.826,
+  "end": 8.339,
+  "text": "remote",
+  "toxic": false
+ },
+ {
+  "start": 8.495,
+  "end": 9.005,
+  "text": "please",
+  "toxic": false
+ }
+]

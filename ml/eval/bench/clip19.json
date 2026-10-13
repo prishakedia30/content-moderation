@@ -1,0 +1,74 @@
+[
+ {
+  "start": 0.4,
+  "end": 0.669,
+  "text": "I",
+  "toxic": false
+ },
+ {
+  "start": 0.865,
+  "end": 1.207,
+  "text": "hate",
+  "toxic": false
+ },
+ {
+  "start": 1.41,
+  "end": 1.897,
+  "text": "waiting",
+  "toxic": false
+ },
+ {
+  "start": 1.995,
+  "end": 2.241,
+  "text": "in",
+  "toxic": false
+ },
+ {
+  "start": 2.342,
+  "end": 2.713,
+  "text": "long",
+  "toxic": false
+ },
+ {
+  "start": 2.864,
+  "end": 3.291,
+  "text": "queues",
+  "toxic": false
+ },
+ {
+  "start": 4.137,
+  "end": 4.4,
+  "text": "but",
+  "toxic": false
+ },
+ {
+  "start": 4.566,
+  "end": 4.804,
+  "text": "the",
+  "toxic": false
+ },
+ {
+  "start": 4.993,
+  "end": 5.607,
+  "text": "museum",
+  "toxic": false
+ },
+ {
+  "start": 5.707,
+  "end": 6.069,
+  "text": "was",
+  "toxic": false
+ },
+ {
+  "start": 6.169,
+  "end": 6.507,
+  "text": "worth",
+  "toxic": false
+ },
+ {
+  "start": 6.674,
+  "end": 6.893,
+  "text": "it",
+  "toxic": false
+ }
+]

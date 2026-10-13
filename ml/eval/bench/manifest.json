@@ -1,0 +1,202 @@
+[
+ {
+  "clip": "clip01",
+  "voice": "en-us",
+  "speed_wpm": 150,
+  "snr_db": 10,
+  "seconds": 9.57,
+  "words": 14,
+  "toxic_words": 1,
+  "transcript": "honestly you are such an idiot sometimes | can you pass me the remote please"
+ },
+ {
+  "clip": "clip02",
+  "voice": "en-gb",
+  "speed_wpm": 180,
+  "snr_db": 20,
+  "seconds": 6.42,
+  "words": 12,
+  "toxic_words": 2,
+  "transcript": "this game is shit and the stupid referee ruined the whole match"
+ },
+ {
+  "clip": "clip03",
+  "voice": "en-us+f3",
+  "speed_wpm": 182,
+  "snr_db": 20,
+  "seconds": 6.55,
+  "words": 10,
+  "toxic_words": 2,
+  "transcript": "shut up you pathetic loser | nobody asked for your opinion"
+ },
+ {
+  "clip": "clip04",
+  "voice": "en-gb-scotland",
+  "speed_wpm": 149,
+  "snr_db": 10,
+  "seconds": 9.08,
+  "words": 14,
+  "toxic_words": 1,
+  "transcript": "I told him the plan twice | he is a complete moron and never listens"
+ },
+ {
+  "clip": "clip05",
+  "voice": "en-gb-x-rp",
+  "speed_wpm": 150,
+  "snr_db": null,
+  "seconds": 8.02,
+  "words": 12,
+  "toxic_words": 1,
+  "transcript": "what the fuck were you thinking | we had one simple job today"
+ },
+ {
+  "clip": "clip06",
+  "voice": "en-us+m3",
+  "speed_wpm": 155,
+  "snr_db": null,
+  "seconds": 5.7,
+  "words": 9,
+  "toxic_words": 2,
+  "transcript": "get out of my class you worthless little bastard"
+ },
+ {
+  "clip": "clip07",
+  "voice": "en+f4",
+  "speed_wpm": 170,
+  "snr_db": 10,
+  "seconds": 9.66,
+  "words": 14,
+  "toxic_words": 1,
+  "transcript": "the food was cold and the waiter was a rude asshole | never going back"
+ },
+ {
+  "clip": "clip08",
+  "voice": "en-us",
+  "speed_wpm": 161,
+  "snr_db": null,
+  "seconds": 7.34,
+  "words": 11,
+  "toxic_words": 1,
+  "transcript": "listen to me carefully | I will find you and kill you"
+ },
+ {
+  "clip": "clip09",
+  "voice": "en-gb",
+  "speed_wpm": 180,
+  "snr_db": 20,
+  "seconds": 5.94,
+  "words": 10,
+  "toxic_words": 1,
+  "transcript": "you are so dumb it hurts | read the instructions again"
+ },
+ {
+  "clip": "clip10",
+  "voice": "en-us+f3",
+  "speed_wpm": 154,
+  "snr_db": null,
+  "seconds": 5.34,
+  "words": 7,
+  "toxic_words": 1,
+  "transcript": "nice try bitch | but you lost again"
+ },
+ {
+  "clip": "clip11",
+  "voice": "en-gb-scotland",
+  "speed_wpm": 183,
+  "snr_db": null,
+  "seconds": 7.68,
+  "words": 14,
+  "toxic_words": 1,
+  "transcript": "my brother is an idiot but I still love him | he makes great pancakes"
+ },
+ {
+  "clip": "clip12",
+  "voice": "en-gb-x-rp",
+  "speed_wpm": 154,
+  "snr_db": null,
+  "seconds": 8.07,
+  "words": 12,
+  "toxic_words": 1,
+  "transcript": "stop sending me this crap | I am busy with exams this week"
+ },
+ {
+  "clip": "clip13",
+  "voice": "en-us+m3",
+  "speed_wpm": 185,
+  "snr_db": 10,
+  "seconds": 7.25,
+  "words": 12,
+  "toxic_words": 1,
+  "transcript": "that was a fucking brilliant goal | what a finish from the striker"
+ },
+ {
+  "clip": "clip14",
+  "voice": "en+f4",
+  "speed_wpm": 161,
+  "snr_db": null,
+  "seconds": 6.16,
+  "words": 8,
+  "toxic_words": 2,
+  "transcript": "you ugly freak | everyone is laughing at you"
+ },
+ {
+  "clip": "clip15",
+  "voice": "en-us",
+  "speed_wpm": 175,
+  "snr_db": 20,
+  "seconds": 8.83,
+  "words": 14,
+  "toxic_words": 0,
+  "transcript": "the meeting starts at ten so please do not be late | bring your laptop"
+ },
+ {
+  "clip": "clip16",
+  "voice": "en-gb",
+  "speed_wpm": 185,
+  "snr_db": null,
+  "seconds": 6.42,
+  "words": 11,
+  "toxic_words": 0,
+  "transcript": "my friend Dick is a great cook | his pasta is amazing"
+ },
+ {
+  "clip": "clip17",
+  "voice": "en-us+f3",
+  "speed_wpm": 154,
+  "snr_db": null,
+  "seconds": 8.31,
+  "words": 11,
+  "toxic_words": 0,
+  "transcript": "we need to assess the class assignment before Friday | thanks everyone"
+ },
+ {
+  "clip": "clip18",
+  "voice": "en-gb-scotland",
+  "speed_wpm": 157,
+  "snr_db": 20,
+  "seconds": 7.66,
+  "words": 13,
+  "toxic_words": 0,
+  "transcript": "the weather in Bangalore is lovely today | let us go for a walk"
+ },
+ {
+  "clip": "clip19",
+  "voice": "en-gb-x-rp",
+  "speed_wpm": 171,
+  "snr_db": null,
+  "seconds": 7.39,
+  "words": 12,
+  "toxic_words": 0,
+  "transcript": "I hate waiting in long queues | but the museum was worth it"
+ },
+ {
+  "clip": "clip20",
+  "voice": "en-us+m3",
+  "speed_wpm": 148,
+  "snr_db": 20,
+  "seconds": 8.0,
+  "words": 11,
+  "toxic_words": 0,
+  "transcript": "this cloud project uses Kubernetes Redis and a small language model"
+ }
+]

@@ -16,6 +16,9 @@ s = UserSecretsClient()
 os.environ["AWS_ACCESS_KEY_ID"] = s.get_secret("AWS_ACCESS_KEY_ID")
 os.environ["AWS_SECRET_ACCESS_KEY"] = s.get_secret("AWS_SECRET_ACCESS_KEY")
 !python content-moderation/ml/experiments/run_all.py --data /kaggle/input --out /kaggle/working/results --upload-version v2
+!pip install -q faster-whisper==1.1.0
+!python content-moderation/ml/eval/video_bench.py --model-dir /kaggle/working/results/deploy --out /kaggle/working/results/video
+!python content-moderation/ml/experiments/run_all.py --data /kaggle/input --out /kaggle/working/results --only report
 ```
 
 Results: `results/REPORT.md`, `results/fig/*.png`, and everything small in `results/results_bundle.zip`.

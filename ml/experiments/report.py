@@ -156,6 +156,10 @@ def write(out):
               f"{_pct(ex['decision_agreement_int8_vs_pytorch'])} (max score difference {_f(ex['max_score_diff'], 4)}). "
               f"Production code latency p50 {ex['production_code_p50_ms']} ms, p95 {ex['production_code_p95_ms']} ms. Uploaded: {ex['uploaded']}.", "",
               "```yaml", json.dumps(ex["thresholds"], indent=2), "```", ""]
+    video = out / "video" / "VIDEO.md"
+    if video.exists():
+        body = video.read_text().replace("\n## ", "\n### ").replace("# Video censoring benchmark", "## 11. Video censoring benchmark")
+        L += [body, ""]
     (out / "REPORT.md").write_text("\n".join(L))
 
     with zipfile.ZipFile(out / "results_bundle.zip", "w", zipfile.ZIP_DEFLATED) as z:
@@ -164,6 +168,8 @@ def write(out):
                 z.write(f, f.name)
         for f in (out / "fig").glob("*.png"):
             z.write(f, f"fig/{f.name}")
+        for f in (out / "video").glob("*"):
+            z.write(f, f"video/{f.name}")
         for f in (out / "deploy").glob("thresholds.yaml"):
             z.write(f, "deploy/thresholds.yaml")
     return out / "REPORT.md"

@@ -1,0 +1,74 @@
+[
+ {
+  "start": 0.4,
+  "end": 0.789,
+  "text": "stop",
+  "toxic": false
+ },
+ {
+  "start": 0.966,
+  "end": 1.514,
+  "text": "sending",
+  "toxic": false
+ },
+ {
+  "start": 1.722,
+  "end": 2.06,
+  "text": "me",
+  "toxic": false
+ },
+ {
+  "start": 2.246,
+  "end": 2.583,
+  "text": "this",
+  "toxic": false
+ },
+ {
+  "start": 2.704,
+  "end": 3.112,
+  "text": "crap",
+  "toxic": true
+ },
+ {
+  "start": 3.754,
+  "end": 4.057,
+  "text": "I",
+  "toxic": false
+ },
+ {
+  "start": 4.256,
+  "end": 4.591,
+  "text": "am",
+  "toxic": false
+ },
+ {
+  "start": 4.744,
+  "end": 5.119,
+  "text": "busy",
+  "toxic": false
+ },
+ {
+  "start": 5.326,
+  "end": 5.701,
+  "text": "with",
+  "toxic": false
+ },
+ {
+  "start": 5.831,
+  "end": 6.558,
+  "text": "exams",
+  "toxic": false
+ },
+ {
+  "start": 6.669,
+  "end": 7.006,
+  "text": "this",
+  "toxic": false
+ },
+ {
+  "start": 7.162,
+  "end": 7.517,
+  "text": "week",
+  "toxic": false
+ }
+]

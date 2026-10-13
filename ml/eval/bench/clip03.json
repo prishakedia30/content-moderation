@@ -1,0 +1,62 @@
+[
+ {
+  "start": 0.4,
+  "end": 0.735,
+  "text": "shut",
+  "toxic": false
+ },
+ {
+  "start": 0.944,
+  "end": 1.193,
+  "text": "up",
+  "toxic": false
+ },
+ {
+  "start": 1.324,
+  "end": 1.61,
+  "text": "you",
+  "toxic": false
+ },
+ {
+  "start": 1.724,
+  "end": 2.224,
+  "text": "pathetic",
+  "toxic": true
+ },
+ {
+  "start": 2.329,
+  "end": 2.721,
+  "text": "loser",
+  "toxic": true
+ },
+ {
+  "start": 3.38,
+  "end": 3.888,
+  "text": "nobody",
+  "toxic": false
+ },
+ {
+  "start": 4.01,
+  "end": 4.418,
+  "text": "asked",
+  "toxic": false
+ },
+ {
+  "start": 4.567,
+  "end": 4.909,
+  "text": "for",
+  "toxic": false
+ },
+ {
+  "start": 5.037,
+  "end": 5.411,
+  "text": "your",
+  "toxic": false
+ },
+ {
+  "start": 5.554,
+  "end": 5.989,
+  "text": "opinion",
+  "toxic": false
+ }
+]

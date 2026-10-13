@@ -1,0 +1,56 @@
+[
+ {
+  "start": 0.4,
+  "end": 0.71,
+  "text": "get",
+  "toxic": false
+ },
+ {
+  "start": 0.876,
+  "end": 1.187,
+  "text": "out",
+  "toxic": false
+ },
+ {
+  "start": 1.336,
+  "end": 1.633,
+  "text": "of",
+  "toxic": false
+ },
+ {
+  "start": 1.744,
+  "end": 2.141,
+  "text": "my",
+  "toxic": false
+ },
+ {
+  "start": 2.261,
+  "end": 2.692,
+  "text": "class",
+  "toxic": false
+ },
+ {
+  "start": 2.875,
+  "end": 3.204,
+  "text": "you",
+  "toxic": false
+ },
+ {
+  "start": 3.34,
+  "end": 3.913,
+  "text": "worthless",
+  "toxic": true
+ },
+ {
+  "start": 4.122,
+  "end": 4.51,
+  "text": "little",
+  "toxic": false
+ },
+ {
+  "start": 4.66,
+  "end": 5.195,
+  "text": "bastard",
+  "toxic": true
+ }
+]

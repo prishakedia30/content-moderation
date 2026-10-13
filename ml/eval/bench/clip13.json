@@ -1,0 +1,74 @@
+[
+ {
+  "start": 0.4,
+  "end": 0.712,
+  "text": "that",
+  "toxic": false
+ },
+ {
+  "start": 0.823,
+  "end": 1.177,
+  "text": "was",
+  "toxic": false
+ },
+ {
+  "start": 1.371,
+  "end": 1.599,
+  "text": "a",
+  "toxic": false
+ },
+ {
+  "start": 1.817,
+  "end": 2.248,
+  "text": "fucking",
+  "toxic": true
+ },
+ {
+  "start": 2.447,
+  "end": 2.871,
+  "text": "brilliant",
+  "toxic": false
+ },
+ {
+  "start": 3.063,
+  "end": 3.355,
+  "text": "goal",
+  "toxic": false
+ },
+ {
+  "start": 4.184,
+  "end": 4.469,
+  "text": "what",
+  "toxic": false
+ },
+ {
+  "start": 4.581,
+  "end": 4.809,
+  "text": "a",
+  "toxic": false
+ },
+ {
+  "start": 4.962,
+  "end": 5.344,
+  "text": "finish",
+  "toxic": false
+ },
+ {
+  "start": 5.474,
+  "end": 5.839,
+  "text": "from",
+  "toxic": false
+ },
+ {
+  "start": 5.923,
+  "end": 6.136,
+  "text": "the",
+  "toxic": false
+ },
+ {
+  "start": 6.22,
+  "end": 6.726,
+  "text": "striker",
+  "toxic": false
+ }
+]

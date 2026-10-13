@@ -1,0 +1,50 @@
+[
+ {
+  "start": 0.4,
+  "end": 0.795,
+  "text": "you",
+  "toxic": false
+ },
+ {
+  "start": 0.902,
+  "end": 1.377,
+  "text": "ugly",
+  "toxic": true
+ },
+ {
+  "start": 1.542,
+  "end": 1.984,
+  "text": "freak",
+  "toxic": true
+ },
+ {
+  "start": 2.765,
+  "end": 3.434,
+  "text": "everyone",
+  "toxic": false
+ },
+ {
+  "start": 3.615,
+  "end": 3.939,
+  "text": "is",
+  "toxic": false
+ },
+ {
+  "start": 4.067,
+  "end": 4.643,
+  "text": "laughing",
+  "toxic": false
+ },
+ {
+  "start": 4.859,
+  "end": 5.176,
+  "text": "at",
+  "toxic": false
+ },
+ {
+  "start": 5.267,
+  "end": 5.662,
+  "text": "you",
+  "toxic": false
+ }
+]

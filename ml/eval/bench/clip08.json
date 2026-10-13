@@ -1,0 +1,68 @@
+[
+ {
+  "start": 0.4,
+  "end": 0.84,
+  "text": "listen",
+  "toxic": false
+ },
+ {
+  "start": 0.959,
+  "end": 1.258,
+  "text": "to",
+  "toxic": false
+ },
+ {
+  "start": 1.358,
+  "end": 1.718,
+  "text": "me",
+  "toxic": false
+ },
+ {
+  "start": 1.873,
+  "end": 2.413,
+  "text": "carefully",
+  "toxic": false
+ },
+ {
+  "start": 3.108,
+  "end": 3.42,
+  "text": "I",
+  "toxic": false
+ },
+ {
+  "start": 3.518,
+  "end": 3.916,
+  "text": "will",
+  "toxic": false
+ },
+ {
+  "start": 4.116,
+  "end": 4.608,
+  "text": "find",
+  "toxic": false
+ },
+ {
+  "start": 4.821,
+  "end": 5.157,
+  "text": "you",
+  "toxic": false
+ },
+ {
+  "start": 5.329,
+  "end": 5.716,
+  "text": "and",
+  "toxic": false
+ },
+ {
+  "start": 5.899,
+  "end": 6.259,
+  "text": "kill",
+  "toxic": true
+ },
+ {
+  "start": 6.403,
+  "end": 6.739,
+  "text": "you",
+  "toxic": false
+ }
+]

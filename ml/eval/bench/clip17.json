@@ -1,0 +1,68 @@
+[
+ {
+  "start": 0.4,
+  "end": 0.77,
+  "text": "we",
+  "toxic": false
+ },
+ {
+  "start": 0.936,
+  "end": 1.355,
+  "text": "need",
+  "toxic": false
+ },
+ {
+  "start": 1.518,
+  "end": 1.828,
+  "text": "to",
+  "toxic": false
+ },
+ {
+  "start": 1.975,
+  "end": 2.452,
+  "text": "assess",
+  "toxic": false
+ },
+ {
+  "start": 2.663,
+  "end": 2.957,
+  "text": "the",
+  "toxic": false
+ },
+ {
+  "start": 3.058,
+  "end": 3.516,
+  "text": "class",
+  "toxic": false
+ },
+ {
+  "start": 3.672,
+  "end": 4.383,
+  "text": "assignment",
+  "toxic": false
+ },
+ {
+  "start": 4.466,
+  "end": 4.988,
+  "text": "before",
+  "toxic": false
+ },
+ {
+  "start": 5.18,
+  "end": 5.712,
+  "text": "Friday",
+  "toxic": false
+ },
+ {
+  "start": 6.369,
+  "end": 6.981,
+  "text": "thanks",
+  "toxic": false
+ },
+ {
+  "start": 7.166,
+  "end": 7.812,
+  "text": "everyone",
+  "toxic": false
+ }
+]

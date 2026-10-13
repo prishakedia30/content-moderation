@@ -1,0 +1,68 @@
+[
+ {
+  "start": 0.4,
+  "end": 0.719,
+  "text": "my",
+  "toxic": false
+ },
+ {
+  "start": 0.846,
+  "end": 1.208,
+  "text": "friend",
+  "toxic": false
+ },
+ {
+  "start": 1.4,
+  "end": 1.607,
+  "text": "Dick",
+  "toxic": false
+ },
+ {
+  "start": 1.823,
+  "end": 2.077,
+  "text": "is",
+  "toxic": false
+ },
+ {
+  "start": 2.212,
+  "end": 2.433,
+  "text": "a",
+  "toxic": false
+ },
+ {
+  "start": 2.569,
+  "end": 2.866,
+  "text": "great",
+  "toxic": false
+ },
+ {
+  "start": 3.079,
+  "end": 3.321,
+  "text": "cook",
+  "toxic": false
+ },
+ {
+  "start": 3.995,
+  "end": 4.298,
+  "text": "his",
+  "toxic": false
+ },
+ {
+  "start": 4.395,
+  "end": 4.771,
+  "text": "pasta",
+  "toxic": false
+ },
+ {
+  "start": 4.872,
+  "end": 5.125,
+  "text": "is",
+  "toxic": false
+ },
+ {
+  "start": 5.332,
+  "end": 5.831,
+  "text": "amazing",
+  "toxic": false
+ }
+]

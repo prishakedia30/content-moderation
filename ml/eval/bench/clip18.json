@@ -1,0 +1,80 @@
+[
+ {
+  "start": 0.4,
+  "end": 0.691,
+  "text": "the",
+  "toxic": false
+ },
+ {
+  "start": 0.887,
+  "end": 1.308,
+  "text": "weather",
+  "toxic": false
+ },
+ {
+  "start": 1.418,
+  "end": 1.651,
+  "text": "in",
+  "toxic": false
+ },
+ {
+  "start": 1.767,
+  "end": 2.324,
+  "text": "Bangalore",
+  "toxic": false
+ },
+ {
+  "start": 2.445,
+  "end": 2.701,
+  "text": "is",
+  "toxic": false
+ },
+ {
+  "start": 2.815,
+  "end": 3.273,
+  "text": "lovely",
+  "toxic": false
+ },
+ {
+  "start": 3.435,
+  "end": 3.885,
+  "text": "today",
+  "toxic": false
+ },
+ {
+  "start": 4.556,
+  "end": 4.88,
+  "text": "let",
+  "toxic": false
+ },
+ {
+  "start": 4.978,
+  "end": 5.242,
+  "text": "us",
+  "toxic": false
+ },
+ {
+  "start": 5.449,
+  "end": 5.727,
+  "text": "go",
+  "toxic": false
+ },
+ {
+  "start": 5.856,
+  "end": 6.153,
+  "text": "for",
+  "toxic": false
+ },
+ {
+  "start": 6.297,
+  "end": 6.539,
+  "text": "a",
+  "toxic": false
+ },
+ {
+  "start": 6.701,
+  "end": 7.056,
+  "text": "walk",
+  "toxic": false
+ }
+]

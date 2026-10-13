@@ -1,0 +1,62 @@
+[
+ {
+  "start": 0.4,
+  "end": 0.694,
+  "text": "you",
+  "toxic": false
+ },
+ {
+  "start": 0.829,
+  "end": 1.074,
+  "text": "are",
+  "toxic": false
+ },
+ {
+  "start": 1.21,
+  "end": 1.515,
+  "text": "so",
+  "toxic": false
+ },
+ {
+  "start": 1.609,
+  "end": 1.883,
+  "text": "dumb",
+  "toxic": true
+ },
+ {
+  "start": 2.052,
+  "end": 2.257,
+  "text": "it",
+  "toxic": false
+ },
+ {
+  "start": 2.346,
+  "end": 2.754,
+  "text": "hurts",
+  "toxic": false
+ },
+ {
+  "start": 3.346,
+  "end": 3.675,
+  "text": "read",
+  "toxic": false
+ },
+ {
+  "start": 3.778,
+  "end": 4.026,
+  "text": "the",
+  "toxic": false
+ },
+ {
+  "start": 4.154,
+  "end": 4.971,
+  "text": "instructions",
+  "toxic": false
+ },
+ {
+  "start": 5.058,
+  "end": 5.455,
+  "text": "again",
+  "toxic": false
+ }
+]

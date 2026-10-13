@@ -1,0 +1,86 @@
+[
+ {
+  "start": 0.4,
+  "end": 0.648,
+  "text": "the",
+  "toxic": false
+ },
+ {
+  "start": 0.756,
+  "end": 1.177,
+  "text": "meeting",
+  "toxic": false
+ },
+ {
+  "start": 1.285,
+  "end": 1.816,
+  "text": "starts",
+  "toxic": false
+ },
+ {
+  "start": 1.983,
+  "end": 2.261,
+  "text": "at",
+  "toxic": false
+ },
+ {
+  "start": 2.467,
+  "end": 2.81,
+  "text": "ten",
+  "toxic": false
+ },
+ {
+  "start": 3.007,
+  "end": 3.36,
+  "text": "so",
+  "toxic": false
+ },
+ {
+  "start": 3.507,
+  "end": 3.935,
+  "text": "please",
+  "toxic": false
+ },
+ {
+  "start": 4.107,
+  "end": 4.359,
+  "text": "do",
+  "toxic": false
+ },
+ {
+  "start": 4.551,
+  "end": 4.915,
+  "text": "not",
+  "toxic": false
+ },
+ {
+  "start": 5.007,
+  "end": 5.291,
+  "text": "be",
+  "toxic": false
+ },
+ {
+  "start": 5.463,
+  "end": 5.814,
+  "text": "late",
+  "toxic": false
+ },
+ {
+  "start": 6.667,
+  "end": 7.033,
+  "text": "bring",
+  "toxic": false
+ },
+ {
+  "start": 7.218,
+  "end": 7.606,
+  "text": "your",
+  "toxic": false
+ },
+ {
+  "start": 7.753,
+  "end": 8.326,
+  "text": "laptop",
+  "toxic": false
+ }
+]
