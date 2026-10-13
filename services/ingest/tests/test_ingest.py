@@ -65,7 +65,7 @@ def test_video_wrong_type_rejected(client):
 
 def test_index_page(client):
     c, _ = client
-    assert "content moderation" in c.get("/").text.lower()
+    assert "moderation console" in c.get("/").text.lower()
 
 
 def test_proxies_forward_to_text_worker(client, monkeypatch):
